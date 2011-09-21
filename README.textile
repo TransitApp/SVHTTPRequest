@@ -1,0 +1,59 @@
+h1. SVHTTPRequest
+
+SVHTTPRequest is a simple and extremely straightforward alternative to bulky ASIHTTPRequest. It is blocked-based, uses NSURLConnection and its only 3rd party dependancy is the blazing fast "JSONKit":https://github.com/johnezang/JSONKit (included in package).
+
+SVHTTPRequest features:
+
+* straightforward singleton convenience methods
+* completion block handler called with parsed JSON
+* support for basic authentication request signing
+* talks with @setNetworkActivityIndicatorVisible@ (can be disabled)
+
+h2. Installation
+
+* Drag the @SVHTTPRequest/SVHTTPRequest@ folder into your project. 
+
+h2. Usage:
+
+SVHTTPRequest was designed to be as most straightforward as possible:
+
+<pre>
+[SVHTTPRequest GET:@"http://api.twitter.com/1/users/show.json"
+        parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
+        completion:^(NSObject *response) {
+            NSLog(@"%@", response);
+        }];
+</pre>
+
+By now you've probably guessed how to make a POST request.
+
+
+h3. Signing requests for basic auth
+
+SVHTTPRequest allows you to easily sign your requests for "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication through the same convenience methods:
+
+<pre>
+[SVHTTPRequest POST:address
+         parameters:parameters 
+           username:username
+           password:password
+         completion:^(NSObject *response)];
+</pre>
+
+h3. Cancelling requests
+
+It's important that you cancel requests that the user isn't waiting for anymore, for instance when he leave a view. All of SVHTTPRequest class methods return pointers to their own instances. Use it to cancel the request if needed:
+
+<pre>
+SVHTTPRequest *request = [SVHTTPRequest GET:@"http://api.twitter.com/1/users/show.json"
+                                 parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
+                                 completion:^(NSObject *response) {
+                                     NSLog(@"%@", response);
+                                 }];
+   
+[request cancel];
+</pre>
+
+h2. Credits
+
+SVHTTPRequest is brought to you by "Sam Vermette":http://samvermette.com ("@samvermette":http://twitter.com/samvermette) and "contributors to the project":https://github.com/samvermette/SVHTTPRequest/contributors. If you have feature suggestions or bug reports, feel free to help out by sending pull requests or by "creating new issues":https://github.com/samvermette/SVHTTPRequest/issues/new. If you're using SVHTTPRequest in your project, attribution would be nice.
