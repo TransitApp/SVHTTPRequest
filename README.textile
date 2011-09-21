@@ -5,17 +5,18 @@ SVHTTPRequest is a simple and extremely straightforward alternative to bulky ASI
 SVHTTPRequest features:
 
 * straightforward singleton convenience methods
-* completion block handler called with parsed JSON
+* completion block handler
+* response is automatically parsed (if applicable) and forwarded to completion block
 * support for basic authentication request signing
-* talks with @setNetworkActivityIndicatorVisible@ (can be disabled)
+* talks with @setNetworkActivityIndicatorVisible@
 
 h2. Installation
 
 * Drag the @SVHTTPRequest/SVHTTPRequest@ folder into your project. 
 
-h2. Usage:
+h2. Usage
 
-SVHTTPRequest was designed to be as most straightforward as possible:
+SVHTTPRequest was designed to be the most straightforward possible:
 
 <pre>
 [SVHTTPRequest GET:@"http://api.twitter.com/1/users/show.json"
@@ -27,22 +28,9 @@ SVHTTPRequest was designed to be as most straightforward as possible:
 
 By now you've probably guessed how to make a POST request.
 
-
-h3. Signing requests for basic auth
-
-SVHTTPRequest allows you to easily sign your requests for "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication through the same convenience methods:
-
-<pre>
-[SVHTTPRequest POST:address
-         parameters:parameters 
-           username:username
-           password:password
-         completion:^(NSObject *response)];
-</pre>
-
 h3. Cancelling requests
 
-It's important that you cancel requests that the user isn't waiting for anymore, for instance when he leave a view. All of SVHTTPRequest class methods return pointers to their own instances. Use it to cancel the request if needed:
+Make sure you cancel requests for which the user isn't waiting on anymore:
 
 <pre>
 SVHTTPRequest *request = [SVHTTPRequest GET:@"http://api.twitter.com/1/users/show.json"
@@ -52,6 +40,22 @@ SVHTTPRequest *request = [SVHTTPRequest GET:@"http://api.twitter.com/1/users/sho
                                  }];
    
 [request cancel];
+</pre>
+
+h3. Connection errors
+
+Requests that fail will report back to the completion block with a @nil@ response object. You can also use the response object to detect errors, depending on the type of call you're making (for instance you were expecting a JSON object and it's not, or if the server itself is providing you with error descriptions).
+
+h3. Signing requests for basic auth
+
+You can easily sign your requests for "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication using similar convenience methods:
+
+<pre>
+[SVHTTPRequest POST:address
+         parameters:parameters 
+           username:username
+           password:password
+         completion:completionBlock];
 </pre>
 
 h2. Credits

@@ -2,7 +2,7 @@
 //  SVHTTPRequest.m
 //
 //  Created by Sam Vermette on 20.09.11.
-//  Copyright 2011 Sam Vermette. All rights reserved.
+//  Copyright 2011 samvermette.com. All rights reserved.
 //
 
 #import "SVHTTPRequest.h"
@@ -17,7 +17,7 @@
 - (NSString*)encodedURLParameterString;
 @end
 
-@interface SVHTTPRequest () <NSURLConnectionDelegate>
+@interface SVHTTPRequest ()
 
 @property (nonatomic, assign) NSMutableURLRequest *request;
 @property (nonatomic, assign) NSMutableData *requestData;

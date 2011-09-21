@@ -2,7 +2,7 @@
 //  SVHTTPRequest.h
 //
 //  Created by Sam Vermette on 20.09.11.
-//  Copyright 2011 Sam Vermette. All rights reserved.
+//  Copyright 2011 samvermette.com. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
