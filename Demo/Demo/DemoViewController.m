@@ -16,7 +16,7 @@
     
     watchersLabel.text = nil;
     
-    [SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVProgressHUD"
+    [SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
             parameters:nil
             completion:^(NSObject *response) {
                 NSLog(@"%@", response);

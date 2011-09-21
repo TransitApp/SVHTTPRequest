@@ -16,6 +16,8 @@ h2. Installation
 
 h2. Usage
 
+(see sample Xcode project in @/Demo@)
+
 SVHTTPRequest was designed to be the most straightforward possible:
 
 <pre>
