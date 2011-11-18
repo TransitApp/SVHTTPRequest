@@ -1,3 +1,5 @@
+__IMPORTANT: SVHTTPRequest is a very rough and preliminary approach to iOS networking. Although it works great and is pretty stable, I don't personally recommend using it in network-intensive, production apps.__
+
 h1. SVHTTPRequest
 
 SVHTTPRequest is a simple and extremely straightforward alternative to bulky ASIHTTPRequest. It is blocked-based, uses NSURLConnection and its only 3rd party dependancy is the blazing fast "JSONKit":https://github.com/johnezang/JSONKit (included in package).
