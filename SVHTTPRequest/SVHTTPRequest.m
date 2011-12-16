@@ -4,6 +4,8 @@
 //  Created by Sam Vermette on 20.09.11.
 //  Copyright 2011 samvermette.com. All rights reserved.
 //
+//  https://github.com/samvermette/SVHTTPRequest
+//
 
 #import "SVHTTPRequest.h"
 #import "JSONKit.h"
@@ -17,153 +19,164 @@
 - (NSString*)encodedURLParameterString;
 @end
 
+enum {
+    SVHTTPRequestStateReady = 0,
+    SVHTTPRequestStateExecuting,
+    SVHTTPRequestStateFinished
+};
+
+typedef NSUInteger SVHTTPRequestState;
+
 @interface SVHTTPRequest ()
 
-@property (nonatomic, assign) NSMutableURLRequest *request;
-@property (nonatomic, assign) NSMutableData *requestData;
-@property (nonatomic, assign) NSURLConnection *requestConnection;
-@property (nonatomic, copy) void (^completionBlock)(NSObject *response);
+@property (nonatomic, assign) NSMutableURLRequest *operationRequest;
+@property (nonatomic, assign) NSMutableData *operationData;
+@property (nonatomic, assign) NSURLConnection *operationConnection;
+@property (nonatomic, copy) void (^operationCompletionBlock)(id response, NSError *error);
+
+@property (nonatomic, readwrite) SVHTTPRequestState state;
+
 @property (nonatomic, retain) NSTimer *timeoutTimer; // see http://stackoverflow.com/questions/2736967
-@property (nonatomic, retain) NSString *username;
-@property (nonatomic, retain) NSString *password;
 
-+ (SVHTTPRequest*)method:(NSString*)method address:(NSString*)address parameters:(NSDictionary *)parameters username:(NSString *)username password:(NSString *)password completion:(void (^)(NSObject *))block;
-
-- (SVHTTPRequest*)initWithCompletionBlock:(void (^)(NSObject *response))block;
-
-- (void)signRequest;
 - (void)addParametersToRequest:(NSDictionary*)paramsDict;
-- (void)makeRequest:(NSString*)urlString withMethod:(NSString*)method parameters:(NSDictionary*)parameters;
+- (void)finish;
+
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error;
 
 @end
 
 
 @implementation SVHTTPRequest
 
-// public properties
-@synthesize username, password;
-
 // private properties
-@synthesize request, requestData, requestConnection, completionBlock, timeoutTimer;
+@synthesize operationRequest, operationData, operationConnection, state;
+@synthesize operationCompletionBlock, timeoutTimer;
 	
 - (void)dealloc {
-    [requestData release];
-    [request release];
+    [operationData release];
+    [operationRequest release];
+    [operationConnection cancel];
+    [operationConnection release];
     
-    [requestConnection cancel];
-    [requestConnection release];
-    
-    self.completionBlock = nil;
+    self.operationCompletionBlock = nil;
     self.timeoutTimer = nil;
-    self.username = nil;
-    self.password = nil;
     
 	[super dealloc];
 }
 
 #pragma mark - Convenience Methods
 
-+ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(NSObject *))block {
-    return [self GET:address parameters:parameters username:nil password:nil completion:block];
-}
-
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(NSObject *))block {
-    return [self POST:address parameters:parameters username:nil password:nil completion:block];
-}
-
-+ (SVHTTPRequest *)GET:(NSString *)address parameters:(NSDictionary *)parameters username:(NSString *)username password:(NSString *)password completion:(void (^)(NSObject *))block {
-    return [self method:@"GET" address:address parameters:parameters username:username password:password completion:block];
-}
-
-+ (SVHTTPRequest *)POST:(NSString *)address parameters:(NSDictionary *)parameters username:(NSString *)username password:(NSString *)password completion:(void (^)(NSObject *))block {
-    return [self method:@"POST" address:address parameters:parameters username:username password:password completion:block];
-}
-
-+ (SVHTTPRequest*)method:(NSString*)method address:(NSString*)address  parameters:(NSDictionary *)parameters username:(NSString *)username password:(NSString *)password completion:(void (^)(NSObject *))block {
++ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters completion:block];
+    [requestObject start];
     
-    SVHTTPRequest *request = [[[self alloc] initWithCompletionBlock:block] autorelease];
-    request.username = username;
-    request.password = password;
-    [request makeRequest:address withMethod:method parameters:parameters];
-    
-    return request;
+    return [requestObject autorelease];
 }
 
-#pragma mark - 
-
-- (SVHTTPRequest *)initWithCompletionBlock:(void (^)(NSObject *))block {
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"POST" parameters:parameters completion:block];
+    [requestObject start];
     
-    if(self = [super init])
-        self.completionBlock = block;
+    return [requestObject autorelease];
+}
 
-	return self;
++ (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"PUT" parameters:parameters completion:block];
+    [requestObject start];
+    
+    return [requestObject autorelease];
+}
+
++ (SVHTTPRequest*)DELETE:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"DELETE" parameters:parameters completion:block];
+    [requestObject start];
+    
+    return [requestObject autorelease];
 }
 
 
-- (void)makeRequest:(NSString*)urlString withMethod:(NSString*)method parameters:(NSDictionary*)parameters {
+#pragma mark -
+
+- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString method:(NSString*)method parameters:(NSDictionary*)parameters completion:(void (^)(id, NSError*))block  {
+    self = [super init];
+    self.operationCompletionBlock = block;
     
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
-    
-	NSLog(@"[%@] %@", method, urlString);
-    
-    if(parameters)
-        NSLog(@"parameters = %@", parameters);
+	//NSLog(@"[%@] %@", method, urlString);
 	
-    request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
+    self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
     
-    [request setHTTPMethod:method];
-    [request setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
+    [self.operationRequest setHTTPMethod:method];
+    [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
     
     [self addParametersToRequest:parameters];
     
-    if(self.username && self.password)
-        [self signRequest];
-    
-    requestData = [[NSMutableData alloc] init];
-    requestConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
-    self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kSVHTTPRequestTimeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
+    self.state = SVHTTPRequestStateReady;
+
+    return self;
 }
 
 
 - (void)addParametersToRequest:(NSDictionary*)paramsDict {
     
-    NSMutableArray *paramStringsArray = [NSMutableArray arrayWithCapacity:[[paramsDict allKeys] count]];
+    NSUInteger parameterCount = [[paramsDict allKeys] count];
+    NSMutableArray *stringParameters = [NSMutableArray arrayWithCapacity:parameterCount];
+    NSMutableArray *dataParameters = [NSMutableArray arrayWithCapacity:parameterCount];
+    NSString *method = self.operationRequest.HTTPMethod;
     
-    for(NSString *key in [paramsDict allKeys]) {
-        NSObject *paramValue = [paramsDict valueForKey:key];
-
-        if([paramValue isKindOfClass:[NSString class]])
-            paramValue = [(NSString*)paramValue encodedURLParameterString];
+    [paramsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         
-        [paramStringsArray addObject:[NSString stringWithFormat:@"%@=%@", key, paramValue]];
+        if([obj isKindOfClass:[NSString class]]) {
+            NSString *cleanParameter = [obj encodedURLParameterString];
+            [stringParameters addObject:[NSString stringWithFormat:@"%@=%@", key, cleanParameter]];
+        } 
+        
+        else if([obj isKindOfClass:[NSData class]]) {
+            if(![method isEqualToString:@"POST"] && ![method isEqualToString:@"PUT"]) {
+                NSLog(@"**SVHTTPRequest: You can only send multipart/form-data over a POST and PUT requests.");
+                exit(0);
+            }
+            
+            NSString *dataBoundaryString = [NSString stringWithString:@"SVHTTPRequestBoundary"];
+            NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", dataBoundaryString];
+            [self.operationRequest addValue:contentType forHTTPHeaderField: @"Content-Type"];
+            
+            NSMutableData *data = [NSMutableData data];
+            [data appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n", dataBoundaryString] dataUsingEncoding:NSUTF8StringEncoding]];
+            [data appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"userfile\"\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
+            [data appendData:[[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+            [data appendData:[NSData dataWithData:obj]];
+            [data appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n", dataBoundaryString] dataUsingEncoding:NSUTF8StringEncoding]];
+            [dataParameters addObject:data];
+        }
+    }];
+    
+    NSString *parameterString = [stringParameters componentsJoinedByString:@"&"];
+    
+    if([method isEqualToString:@"GET"]) {
+        NSString *baseAddress = self.operationRequest.URL.absoluteString;
+        baseAddress = [baseAddress stringByAppendingFormat:@"?%@", [stringParameters componentsJoinedByString:@"&"]];
+        [self.operationRequest setURL:[NSURL URLWithString:baseAddress]];
     }
     
-    NSString *paramsString = [paramStringsArray componentsJoinedByString:@"&"];
-    
-    if([request.HTTPMethod isEqualToString:@"GET"]) {
-        NSString *baseAddress = request.URL.absoluteString;
-        baseAddress = [baseAddress stringByAppendingFormat:@"?%@", paramsString];
-        [request setURL:[NSURL URLWithString:baseAddress]];
-    }
-    
-    else if([request.HTTPMethod isEqualToString:@"POST"]) {
-        const char *data = [paramsString UTF8String];
-        NSData *paramsData = [NSData dataWithBytes:data length:strlen(data)];
-        [request setHTTPBody:paramsData];
+    else {
+        const char *stringData = [parameterString UTF8String];
+        NSMutableData *postData = [NSMutableData dataWithBytes:stringData length:strlen(stringData)];
+        
+        for(NSData *fileData in dataParameters)
+            [postData appendData:fileData];
+        
+        [self.operationRequest setHTTPBody:postData];
     }
 }
 
 
-- (void)signRequest {
-    NSString *authStr = [NSString stringWithFormat:@"%@:%@", self.username, self.password];
+- (void)signRequestWithUsername:(NSString*)username password:(NSString*)password  {
+    NSString *authStr = [NSString stringWithFormat:@"%@:%@", username, password];
     NSData *authData = [authStr dataUsingEncoding:NSASCIIStringEncoding];
     NSString *authValue = [NSString stringWithFormat:@"Basic %@", [authData base64EncodingWithLineLength:140]];
-    [request setValue:authValue forHTTPHeaderField:@"Authorization"];
+    [self.operationRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
 }
 
-- (void)cancel {
-    [requestConnection cancel];
-}
 
 - (void)setTimeoutTimer:(NSTimer *)newTimer {
     
@@ -174,6 +187,66 @@
         timeoutTimer = [newTimer retain];
 }
 
+#pragma mark - NSOperation methods
+
+- (void)start {
+    
+    if(self.isCancelled) {
+        [self finish];
+        return;
+    }
+    
+    if(![NSThread isMainThread]) { // NSOperationQueue calls start from a bg thread (through GCD), but NSURLConnection already does that by itself
+        [self performSelectorOnMainThread:@selector(start) withObject:nil waitUntilDone:NO];
+        return;
+    }
+    
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+    
+    [self willChangeValueForKey:@"isExecuting"];
+    self.state = SVHTTPRequestStateExecuting;    
+    [self didChangeValueForKey:@"isExecuting"];
+    
+    self.operationData = [[NSMutableData alloc] init];
+    self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kSVHTTPRequestTimeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
+    self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:YES];
+}
+
+// private method; not part of NSOperation
+- (void)finish {
+    [self.operationConnection cancel];
+    [self.operationConnection release];
+    operationConnection = nil;
+    
+    [self willChangeValueForKey:@"isExecuting"];
+    [self willChangeValueForKey:@"isFinished"];
+    self.state = SVHTTPRequestStateFinished;    
+    [self didChangeValueForKey:@"isExecuting"];
+    [self didChangeValueForKey:@"isFinished"];
+    
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+}
+
+- (void)cancel {
+    if([self isFinished])
+        return;
+    
+    [super cancel];
+    [self finish];
+}
+
+- (BOOL)isConcurrent {
+    return YES;
+}
+
+- (BOOL)isFinished {
+    return self.state == SVHTTPRequestStateFinished;
+}
+
+- (BOOL)isExecuting {
+    return self.state == SVHTTPRequestStateExecuting;
+}
+
 #pragma mark -
 #pragma mark Delegate Methods
 
@@ -181,33 +254,34 @@
     [self connection:nil didFailWithError:nil];
 }
 
-
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    [requestData appendData:data];
+    [self.operationData appendData:data];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     self.timeoutTimer = nil;
-    
-    NSObject *returnedObject = requestData;
+
+    id response = [NSData dataWithData:self.operationData];
     
     // try to parse JSON. If image or XML, will return raw NSData object
-    NSDictionary *jsonObject = [requestData objectFromJSONData];
+    NSDictionary *jsonObject = [response objectFromJSONData];
     
 	if(jsonObject)
-        returnedObject = jsonObject;
-
-    self.completionBlock(returnedObject);
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+        response = jsonObject;
+    
+    if(self.operationCompletionBlock)
+        self.operationCompletionBlock(response, nil);
+        
+    [self finish];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     self.timeoutTimer = nil;
-
-	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 	
 	NSLog(@"requestFailed: %@", [error localizedDescription]);
-	self.completionBlock(nil);
+	self.operationCompletionBlock(nil, error);
+    
+    [self finish];
 }
 
 @end
@@ -217,7 +291,7 @@
 // Created by Jon Crosby on 10/19/07.
 // Copyright 2007 Kaboomerang LLC. All rights reserved.
 
-@implementation NSString (OAURLEncodingAdditions)
+@implementation NSString (SVHTTPRequest)
 
 - (NSString*)encodedURLParameterString {
     NSString *result = (NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
@@ -241,9 +315,9 @@ static char encodingTable[64] = {
     'g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v',
     'w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/' };
 
-@implementation NSData (Base64)
+@implementation NSData (SVHTTPRequest)
 
-- (NSString *) base64EncodingWithLineLength:(unsigned int) lineLength {
+- (NSString *)base64EncodingWithLineLength:(unsigned int) lineLength {
 	const unsigned char	*bytes = [self bytes];
 	NSMutableString *result = [NSMutableString stringWithCapacity:[self length]];
 	unsigned long ixtext = 0;

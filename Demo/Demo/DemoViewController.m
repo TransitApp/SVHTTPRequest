@@ -18,8 +18,7 @@
     
     [SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
             parameters:nil
-            completion:^(NSObject *response) {
-                NSLog(@"%@", response);
+            completion:^(id response, NSError *error) {
                 watchersLabel.text = [NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
             }];
 }
@@ -29,18 +28,22 @@
     twitterImageView.image = nil;
     followersLabel.text = nil;
     
-    [SVHTTPRequest GET:@"http://img.tweetimag.es/i/samvermette_o"
-            parameters:nil
-            completion:^(NSObject *response) {
-                twitterImageView.image = [UIImage imageWithData:(NSData*)response];
-            }];
+    [[SVHTTPClient sharedClient] setBasePath:@"http://api.twitter.com/1/"];
     
-    [SVHTTPRequest GET:@"http://api.twitter.com/1/users/show.json"
-            parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
-            completion:^(NSObject *response) {
-                NSLog(@"%@", response);
-                followersLabel.text = [NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]];
-            }];
+    [[SVHTTPClient sharedClient] GET:@"users/profile_image"
+                          parameters:[NSDictionary dictionaryWithObjectsAndKeys:
+                                      @"samvermette", @"screen_name",
+                                      @"original", @"size",
+                                      nil]
+                          completion:^(id response, NSError *error) {
+                              twitterImageView.image = [UIImage imageWithData:response];
+                          }];
+    
+    [[SVHTTPClient sharedClient] GET:@"users/show.json"
+                          parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
+                          completion:^(id response, NSError *error) {
+                              followersLabel.text = [NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]];
+                          }];
 }
 
 

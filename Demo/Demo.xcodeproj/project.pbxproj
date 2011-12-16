@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		220FDF28149A65BE0021F43D /* SVHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 220FDF27149A65BE0021F43D /* SVHTTPClient.m */; };
+		220FDF35149AC4880021F43D /* README.textile in Resources */ = {isa = PBXBuildFile; fileRef = 220FDF34149AC4880021F43D /* README.textile */; };
 		2253899914297AFE00856491 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2253899814297AFE00856491 /* UIKit.framework */; };
 		2253899B14297AFE00856491 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2253899A14297AFE00856491 /* Foundation.framework */; };
 		2253899D14297AFE00856491 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2253899C14297AFE00856491 /* CoreGraphics.framework */; };
@@ -23,6 +25,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		220FDF26149A65BE0021F43D /* SVHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVHTTPClient.h; sourceTree = "<group>"; };
+		220FDF27149A65BE0021F43D /* SVHTTPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVHTTPClient.m; sourceTree = "<group>"; };
+		220FDF34149AC4880021F43D /* README.textile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.textile; path = ../README.textile; sourceTree = "<group>"; };
 		2253899414297AFE00856491 /* Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2253899814297AFE00856491 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		2253899A14297AFE00856491 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -62,6 +67,7 @@
 		2253898914297AFD00856491 = {
 			isa = PBXGroup;
 			children = (
+				220FDF34149AC4880021F43D /* README.textile */,
 				2253899E14297AFE00856491 /* Demo */,
 				225389B814297B0B00856491 /* SVHTTPRequest */,
 				2253899714297AFE00856491 /* Frameworks */,
@@ -116,6 +122,8 @@
 			isa = PBXGroup;
 			children = (
 				225389B914297B0B00856491 /* JSONKit */,
+				220FDF26149A65BE0021F43D /* SVHTTPClient.h */,
+				220FDF27149A65BE0021F43D /* SVHTTPClient.m */,
 				225389BE14297B0B00856491 /* SVHTTPRequest.h */,
 				225389BF14297B0B00856491 /* SVHTTPRequest.m */,
 			);
@@ -189,6 +197,7 @@
 				225389B214297AFE00856491 /* DemoViewController.xib in Resources */,
 				225389C014297B0B00856491 /* CHANGELOG.md in Resources */,
 				225389C214297B0B00856491 /* README.md in Resources */,
+				220FDF35149AC4880021F43D /* README.textile in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -204,6 +213,7 @@
 				225389AF14297AFE00856491 /* DemoViewController.m in Sources */,
 				225389C114297B0B00856491 /* JSONKit.m in Sources */,
 				225389C314297B0B00856491 /* SVHTTPRequest.m in Sources */,
+				220FDF28149A65BE0021F43D /* SVHTTPClient.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

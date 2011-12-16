@@ -1,20 +1,21 @@
-__IMPORTANT: SVHTTPRequest is a very rough and preliminary approach to iOS networking. Although it works great and is pretty stable, I don't personally recommend using it in network-intensive, production apps.__
+__If you're upgrading from an earlier version of SVHTTPRequest, please see the transition notes at the bottom of this document.__
 
 h1. SVHTTPRequest
 
-SVHTTPRequest is a simple and extremely straightforward alternative to bulky ASIHTTPRequest. It is blocked-based, uses NSURLConnection and its only 3rd party dependancy is the blazing fast "JSONKit":https://github.com/johnezang/JSONKit (included in package).
+SVHTTPRequest is a simple and extremely straightforward way to communicate with RESTful web APIs. It's a simpler and cleaner alternative to bulky "ASIHTTPRequest":https://github.com/pokeb/asi-http-request/tree, "AFNetworking":https://github.com/AFNetworking/AFNetworking and "RESTKit":https://github.com/RestKit/RestKit. It is blocked-based, uses NSURLConnection as well as the blazing fast "JSONKit":https://github.com/johnezang/JSONKit (included in package) to automatically parse JSON responses.
 
-SVHTTPRequest features:
+**SVHTTPRequest features:**
 
-* straightforward singleton convenience methods
-* completion block handler
-* response is automatically parsed (if applicable) and forwarded to completion block
-* support for basic authentication request signing
+* straightforward singleton convenience methods for making GET, POST, PUT and DELETE requests.
+* completion block handler (returns @NSObject@ if response is JSON, otherwise @NSData@ or @NSError@)
+* persistent @basePath@ and basic authentication signing when using @SVHTTPClient@.
+* support for @multipart/form-data@ parameters in POST and PUT requests.
 * talks with @setNetworkActivityIndicatorVisible@
 
 h2. Installation
 
 * Drag the @SVHTTPRequest/SVHTTPRequest@ folder into your project. 
+* @#import "SVHTTPRequest.h"@ (this will import @SVHTTPClient@ as well)
 
 h2. Usage
 
@@ -23,15 +24,40 @@ h2. Usage
 SVHTTPRequest was designed to be the most straightforward possible:
 
 <pre>
-[SVHTTPRequest GET:@"http://api.twitter.com/1/users/show.json"
-        parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
-        completion:^(NSObject *response) {
-            NSLog(@"%@", response);
+[SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
+        parameters:nil
+        completion:^(id response, NSError *error) {
+            NSLog(@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
         }];
 </pre>
 
-By now you've probably guessed how to make a POST request.
+You can replace @GET@ with @POST@, @PUT@ or @DELETE@.
 
+h3. Using a shared client
+
+If most of your requests are made to the same API endpoint, you can use @SVHTTPClient@ and set its @basePath@ parameter:
+
+<pre>
+[[SVHTTPClient sharedClient] setBasePath:@"http://api.twitter.com/1/"];
+
+[[SVHTTPClient sharedClient] GET:@"users/profile_image"
+                      parameters:[NSDictionary dictionaryWithObjectsAndKeys:
+                                  @"samvermette", @"screen_name",
+                                  @"original", @"size",
+                                  nil]
+                      completion:^(id response, NSError *error) {
+                          twitterImageView.image = [UIImage imageWithData:response];
+                      }];
+
+[[SVHTTPClient sharedClient] GET:@"users/show.json"
+                      parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
+                      completion:^(id response, NSError *error) {
+                          followersLabel.text = [NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]];
+                      }];
+</pre> 
+
+SVHTTPClient also allows you to sign all requests using "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication with @setBasicAuthWithUsername:password:@.
+                        
 h3. Cancelling requests
 
 Make sure you cancel requests for which the user isn't waiting on anymore:
@@ -46,22 +72,27 @@ SVHTTPRequest *request = [SVHTTPRequest GET:@"http://api.twitter.com/1/users/sho
 [request cancel];
 </pre>
 
-h3. Connection errors
+If you're using SVHTTPClient, you can do that by calling @cancelAllRequests@.
 
-Requests that fail will report back to the completion block with a @nil@ response object. You can also use the response object to detect errors, depending on the type of call you're making (for instance you were expecting a JSON object and it's not, or if the server itself is providing you with error descriptions).
+h2. Under the hood
 
-h3. Signing requests for basic auth
-
-You can easily sign your requests for "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication using similar convenience methods:
+All SVHTTPRequest requests are made asynchronously using NSURLConnection's built-in asynchronous methods. The completion block, however, is executed on the main thread. You should dispatch it to a separate thread/queue if it's resource intensive enough that it hogs the main thread. This can be done easily using "Grand Central Dispatch":http://developer.apple.com/library/mac/#documentation/Performance/Reference/GCD_libdispatch_Ref/Reference/reference.html:
 
 <pre>
-[SVHTTPRequest POST:address
-         parameters:parameters 
-           username:username
-           password:password
-         completion:completionBlock];
+completion:^(NSObject *response) {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        // cpu-intensive code
+    });
+}];
 </pre>
+
+h2. Transition notes
+
+If you've been using SVHTTPRequest since before Dec 15, upgrading to this version will give you errors at compile time (old design sucked too bad for me to add deprecation notices). Here's what changed so you can more easily migrate to this new awesome version:
+
+* the completion block definition changed from @^(NSObject *response)@ to @^(id response, NSError *error)@
+* the basic auth signing stuff has moved from @SVHTTPRequest@ to @SVHTTPClient@.
 
 h2. Credits
 
-SVHTTPRequest is brought to you by "Sam Vermette":http://samvermette.com ("@samvermette":http://twitter.com/samvermette) and "contributors to the project":https://github.com/samvermette/SVHTTPRequest/contributors. If you have feature suggestions or bug reports, feel free to help out by sending pull requests or by "creating new issues":https://github.com/samvermette/SVHTTPRequest/issues/new. If you're using SVHTTPRequest in your project, attribution would be nice.
+SVHTTPRequest is brought to you by "Sam Vermette":http://samvermette.com and "contributors to the project":https://github.com/samvermette/SVHTTPRequest/contributors. If you have feature suggestions or bug reports, feel free to help out by sending pull requests or by "creating new issues":https://github.com/samvermette/SVHTTPRequest/issues/new. If you're using SVHTTPRequest in your project, attribution would be nice.
