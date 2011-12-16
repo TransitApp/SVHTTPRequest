@@ -11,8 +11,6 @@
 
 #import "SVHTTPClient.h"
 
-#define kSVHTTPRequestTimeoutInterval 20
-
 @interface SVHTTPRequest : NSOperation
 
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;

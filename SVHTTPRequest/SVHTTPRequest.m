@@ -10,6 +10,7 @@
 #import "SVHTTPRequest.h"
 #import "JSONKit.h"
 
+#define kSVHTTPRequestTimeoutInterval 20
 
 @interface NSData (Base64)
 - (NSString*)base64EncodingWithLineLength:(unsigned int)lineLength;
