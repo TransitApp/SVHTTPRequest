@@ -106,6 +106,10 @@ If you've been using SVHTTPRequest since before Dec 15, upgrading to this versio
 * the completion block definition changed from @^(NSObject *response)@ to @^(id response, NSError *error)@
 * the basic auth signing stuff has moved from @SVHTTPRequest@ to @SVHTTPClient@.
 
+h2. Automatic Reference Counting (ARC) support
+
+Maintaining an official ARC branch has proven to be too much work, often leading to confusion since the ARC branch is always a few commits behind. If you'd like to use SVHTTPRequest in your ARC-enabled project, you'll have to "add the @-fno-objc-arc@ compiler flag":http://stackoverflow.com/questions/6646052/how-can-i-disable-arc-for-a-single-file-in-a-project to all of SVHTTPRequest's files.
+
 h2. Credits
 
 SVHTTPRequest is brought to you by "Sam Vermette":http://samvermette.com and "contributors to the project":https://github.com/samvermette/SVHTTPRequest/contributors. If you have feature suggestions or bug reports, feel free to help out by sending pull requests or by "creating new issues":https://github.com/samvermette/SVHTTPRequest/issues/new. If you're using SVHTTPRequest in your project, attribution would be nice.
