@@ -32,7 +32,10 @@ typedef NSUInteger SVHTTPRequestState;
 
 @property (nonatomic, assign) NSMutableURLRequest *operationRequest;
 @property (nonatomic, assign) NSMutableData *operationData;
+@property (nonatomic, retain) NSFileHandle *operationFileHandle;
 @property (nonatomic, assign) NSURLConnection *operationConnection;
+
+@property (nonatomic, retain) NSString *operationSavePath;
 @property (nonatomic, copy) void (^operationCompletionBlock)(id response, NSError *error);
 
 @property (nonatomic, readwrite) SVHTTPRequestState state;
@@ -50,8 +53,8 @@ typedef NSUInteger SVHTTPRequestState;
 @implementation SVHTTPRequest
 
 // private properties
-@synthesize operationRequest, operationData, operationConnection, state;
-@synthesize operationCompletionBlock, timeoutTimer;
+@synthesize operationRequest, operationData, operationConnection, operationFileHandle, state;
+@synthesize operationSavePath, operationCompletionBlock, timeoutTimer;
 	
 - (void)dealloc {
     [operationData release];
@@ -60,6 +63,8 @@ typedef NSUInteger SVHTTPRequestState;
     [operationConnection release];
     
     self.operationCompletionBlock = nil;
+    self.operationFileHandle = nil;
+    self.operationSavePath = nil;
     self.timeoutTimer = nil;
     
 	[super dealloc];
@@ -68,28 +73,35 @@ typedef NSUInteger SVHTTPRequestState;
 #pragma mark - Convenience Methods
 
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:nil completion:block];
+    [requestObject start];
+    
+    return [requestObject autorelease];
+}
+
++ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath completion:(void (^)(id, NSError *))block {
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:savePath completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"POST" parameters:parameters completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"POST" parameters:parameters saveToPath:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"PUT" parameters:parameters completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"PUT" parameters:parameters saveToPath:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)DELETE:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"DELETE" parameters:parameters completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"DELETE" parameters:parameters saveToPath:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
@@ -98,9 +110,10 @@ typedef NSUInteger SVHTTPRequestState;
 
 #pragma mark -
 
-- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString method:(NSString*)method parameters:(NSDictionary*)parameters completion:(void (^)(id, NSError*))block  {
+- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString method:(NSString*)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id, NSError*))block  {
     self = [super init];
     self.operationCompletionBlock = block;
+    self.operationSavePath = savePath;
     
 	//NSLog(@"[%@] %@", method, urlString);
 	
@@ -208,8 +221,14 @@ typedef NSUInteger SVHTTPRequestState;
     self.state = SVHTTPRequestStateExecuting;    
     [self didChangeValueForKey:@"isExecuting"];
     
-    self.operationData = [[NSMutableData alloc] init];
-    self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kSVHTTPRequestTimeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
+    if(self.operationSavePath) {
+        [[NSFileManager defaultManager] createFileAtPath:self.operationSavePath contents:nil attributes:nil];
+        self.operationFileHandle = [NSFileHandle fileHandleForWritingAtPath:self.operationSavePath];
+    } else {
+        self.operationData = [[NSMutableData alloc] init];
+        self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kSVHTTPRequestTimeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
+    }
+    
     self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:YES];
 }
 
@@ -256,19 +275,25 @@ typedef NSUInteger SVHTTPRequestState;
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    [self.operationData appendData:data];
+    if(self.operationSavePath)
+        [self.operationFileHandle writeData:data];
+    else
+        [self.operationData appendData:data];
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     self.timeoutTimer = nil;
-
-    id response = [NSData dataWithData:self.operationData];
+    id response = nil;
     
-    // try to parse JSON. If image or XML, will return raw NSData object
-    NSDictionary *jsonObject = [response objectFromJSONData];
-    
-	if(jsonObject)
-        response = jsonObject;
+    if(self.operationData) {
+        response = [NSData dataWithData:self.operationData];
+        
+        // try to parse JSON. If image or XML, will return raw NSData object
+        NSDictionary *jsonObject = [response objectFromJSONData];
+        
+        if(jsonObject)
+            response = jsonObject;
+    }
     
     if(self.operationCompletionBlock)
         self.operationCompletionBlock(response, nil);

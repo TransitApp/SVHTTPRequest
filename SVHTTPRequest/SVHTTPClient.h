@@ -13,13 +13,14 @@
 
 + (SVHTTPClient*)sharedClient;
 
-- (void)setBasePath:(NSString *)path;
+- (void)setBasePath:(NSString*)path;
 - (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
 
-- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id response, NSError *error))block;
-- (void)POST:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id response, NSError *error))block;
-- (void)PUT:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id response, NSError *error))block;
-- (void)DELETE:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id response, NSError *error))block;
+- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
+- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))block;
+- (void)POST:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
+- (void)PUT:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
+- (void)DELETE:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 
 - (void)cancelAllRequests;
 

@@ -14,6 +14,7 @@
 @interface SVHTTPRequest : NSOperation
 
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
++ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)POST:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
@@ -28,6 +29,7 @@
 - (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString 
                                   method:(NSString*)method 
                               parameters:(NSDictionary*)parameters 
+                              saveToPath:(NSString*)savePath
                               completion:(void (^)(id, NSError*))block;
 
 - (void)signRequestWithUsername:(NSString*)username password:(NSString*)password;

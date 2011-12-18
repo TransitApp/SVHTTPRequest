@@ -57,6 +57,19 @@ If most of your requests are made to the same API endpoint, you can use @SVHTTPC
 </pre> 
 
 SVHTTPClient also allows you to sign all requests using "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication with @setBasicAuthWithUsername:password:@.
+
+h3. Saving a GET response to disk
+
+You can tell SVHTTPRequest to save a GET response directly to disk (to avoid filling up your memory with it):
+
+<pre>
+[SVHTTPRequest GET:@"http://example.com/db.sqlite.zip" 
+        parameters:nil 
+        saveToPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"store.zip"]
+        completion:^(id response, NSError *error) {
+            // process file
+        }];
+</pre>
                         
 h3. Cancelling requests
 
