@@ -233,6 +233,7 @@ typedef NSUInteger SVHTTPRequestState;
     }
     
     self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:YES];
+    NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
 }
 
 // private method; not part of NSOperation
