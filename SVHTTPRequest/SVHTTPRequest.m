@@ -114,15 +114,13 @@ typedef NSUInteger SVHTTPRequestState;
     self = [super init];
     self.operationCompletionBlock = block;
     self.operationSavePath = savePath;
-    
-	//NSLog(@"[%@] %@", method, urlString);
-	
+
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
-    
-    [self.operationRequest setHTTPMethod:method];
     [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
+    [self.operationRequest setHTTPMethod:method];
     
-    [self addParametersToRequest:parameters];
+    if(parameters)
+        [self addParametersToRequest:parameters];
     
     self.state = SVHTTPRequestStateReady;
 
@@ -133,6 +131,7 @@ typedef NSUInteger SVHTTPRequestState;
 - (void)addParametersToRequest:(NSDictionary*)paramsDict {
     
     NSUInteger parameterCount = [[paramsDict allKeys] count];
+    
     NSMutableArray *stringParameters = [NSMutableArray arrayWithCapacity:parameterCount];
     NSMutableArray *dataParameters = [NSMutableArray arrayWithCapacity:parameterCount];
     NSString *method = self.operationRequest.HTTPMethod;
