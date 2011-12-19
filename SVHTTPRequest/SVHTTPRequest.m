@@ -289,7 +289,7 @@ typedef NSUInteger SVHTTPRequestState;
     self.timeoutTimer = nil;
     id response = nil;
     
-    if(self.operationData) {
+    if(self.operationData && self.operationData.length > 0) {
         response = [NSData dataWithData:self.operationData];
         
         // try to parse JSON. If image or XML, will return raw NSData object
