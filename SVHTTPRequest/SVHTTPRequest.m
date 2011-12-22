@@ -275,7 +275,8 @@ typedef NSUInteger SVHTTPRequestState;
 #pragma mark Delegate Methods
 
 - (void)requestTimeout {
-    [self connection:nil didFailWithError:nil];
+    NSError *timeoutError = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:nil];
+    [self connection:nil didFailWithError:timeoutError];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
