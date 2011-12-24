@@ -10,7 +10,7 @@
 #import "SVHTTPRequest.h"
 #import "JSONKit.h"
 
-#define kSVHTTPRequestTimeoutInterval 20
+const NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 @interface NSData (Base64)
 - (NSString*)base64EncodingWithLineLength:(unsigned int)lineLength;
@@ -115,8 +115,11 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationCompletionBlock = block;
     self.operationSavePath = savePath;
 
-    self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
-    [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
+    NSMutableURLRequest* request =  [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
+    self.operationRequest = request;
+    [request release];
+    
+    [self.operationRequest setTimeoutInterval:SVHTTPRequestTimeoutInterval];
     [self.operationRequest setHTTPMethod:method];
     
     if(parameters)
@@ -228,19 +231,21 @@ typedef NSUInteger SVHTTPRequestState;
         [[NSFileManager defaultManager] createFileAtPath:self.operationSavePath contents:nil attributes:nil];
         self.operationFileHandle = [NSFileHandle fileHandleForWritingAtPath:self.operationSavePath];
     } else {
-        self.operationData = [[NSMutableData alloc] init];
-        self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kSVHTTPRequestTimeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
+        self.operationData = [[[NSMutableData alloc] init] autorelease];
+        self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:SVHTTPRequestTimeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
     }
     
-    self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:YES];
+    NSURLConnection* connection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:YES];
+    self.operationConnection = connection;
+    [connection release];
+    
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
 }
 
 // private method; not part of NSOperation
 - (void)finish {
     [self.operationConnection cancel];
-    [self.operationConnection release];
-    operationConnection = nil;
+    self.operationConnection = nil;
     
     [self willChangeValueForKey:@"isExecuting"];
     [self willChangeValueForKey:@"isFinished"];
