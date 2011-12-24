@@ -50,8 +50,11 @@
 }
 
 - (id)init {
-    self = [super init];
-    self.operationQueue = [[NSOperationQueue alloc] init];
+    if (self = [super init]) {
+        NSOperationQueue* queue = [[NSOperationQueue alloc] init];
+        self.operationQueue = queue;
+        [queue release];
+    }
     return self;
 }
 
