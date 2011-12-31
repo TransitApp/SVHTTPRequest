@@ -70,6 +70,22 @@ You can tell SVHTTPRequest to save a GET response directly to disk (to avoid fil
             // process file
         }];
 </pre>
+
+h4. Saving a GET response to disk with a progress Indicator
+
+You can tell SVHTTPRequest to update the progress Indicator for you:
+
+<pre>
+[SVHTTPRequest GET:@"http://example.com/db.sqlite.zip" 
+        parameters:nil 
+        saveToPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"store.zip"]
+ progressIndicator:progressIndicator
+        completion:^(id response, NSError *error) {
+            // process file
+        }];
+</pre>
+
+Here the progressIndicator is a UIProgressView.
                         
 h3. Cancelling requests
 
