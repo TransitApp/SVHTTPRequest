@@ -46,5 +46,18 @@
                           }];
 }
 
+- (IBAction)downloadRequest {
+    
+    downloadLabel.text = nil;
+    
+    [SVHTTPRequest GET:@"http://sanjosetransit.com/extras/iAdInterstitialSuite.zip" 
+            parameters:nil 
+            saveToPath:@"/Volumes/Data/test.zip" 
+     progressIndicator:progressIndicator
+            completion:^(id response, NSError *error) {
+                downloadLabel.text = @"Download complete.";
+            }];
+}
+
 
 @end
