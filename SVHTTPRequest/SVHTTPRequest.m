@@ -46,6 +46,10 @@ typedef NSUInteger SVHTTPRequestState;
 
 @property (nonatomic, retain) NSTimer *timeoutTimer; // see http://stackoverflow.com/questions/2736967
 
+@property (nonatomic, retain) UIProgressView *operationProgressIndicator;
+@property (nonatomic, retain) NSNumber *responseSize;
+@property (nonatomic, readwrite) NSUInteger intermediateResourceLength;
+
 - (void)addParametersToRequest:(NSDictionary*)paramsDict;
 - (void)finish;
 
@@ -59,6 +63,7 @@ typedef NSUInteger SVHTTPRequestState;
 // private properties
 @synthesize operationRequest, operationData, operationConnection, operationFileHandle, state;
 @synthesize operationSavePath, operationCompletionBlock, timeoutTimer;
+@synthesize operationProgressIndicator, responseSize, intermediateResourceLength;
 	
 - (void)dealloc {
     [operationData release];
@@ -70,6 +75,8 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationFileHandle = nil;
     self.operationSavePath = nil;
     self.timeoutTimer = nil;
+    self.operationProgressIndicator = nil;
+    self.responseSize = nil;
     
 	[super dealloc];
 }
@@ -77,35 +84,42 @@ typedef NSUInteger SVHTTPRequestState;
 #pragma mark - Convenience Methods
 
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:nil progressIndicator:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath completion:(void (^)(id, NSError *))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:savePath completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:savePath                        progressIndicator:nil completion:block];
+    [requestObject start];
+    
+    return [requestObject autorelease];
+}
+
++ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progressIndicator:(UIProgressView*)progressIndicator completion:(void (^)(id response, NSError *error))block{
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:savePath                        progressIndicator:progressIndicator completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"POST" parameters:parameters saveToPath:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"POST" parameters:parameters saveToPath:nil progressIndicator:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"PUT" parameters:parameters saveToPath:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"PUT" parameters:parameters saveToPath:nil progressIndicator:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)DELETE:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"DELETE" parameters:parameters saveToPath:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"DELETE" parameters:parameters saveToPath:nil progressIndicator:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
@@ -114,7 +128,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 #pragma mark -
 
-- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString method:(NSString*)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id, NSError*))block  {
+- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString method:(NSString*)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath                        progressIndicator:(UIProgressView*)progressIndicator completion:(void (^)(id, NSError*))block  {
     self = [super init];
     self.operationCompletionBlock = block;
     self.operationSavePath = savePath;
@@ -132,6 +146,10 @@ typedef NSUInteger SVHTTPRequestState;
     
     if(parameters)
         [self addParametersToRequest:parameters];
+    
+    if (progressIndicator) {
+        self.operationProgressIndicator = progressIndicator;
+    }
     
     self.state = SVHTTPRequestStateReady;
 
@@ -290,11 +308,25 @@ typedef NSUInteger SVHTTPRequestState;
     [self connection:nil didFailWithError:timeoutError];
 }
 
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
+    self.responseSize = [NSNumber numberWithLongLong:[response expectedContentLength]];
+    self.intermediateResourceLength = 0;
+    NSLog(@"content-length: %@ bytes", self.responseSize);
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
     if(self.operationSavePath)
         [self.operationFileHandle writeData:data];
     else
         [self.operationData appendData:data];
+    
+    //If its -1 that means the header does not have the content size value
+    if ([self.responseSize intValue]!=-1) {
+        self.intermediateResourceLength += [data length];
+        [self.operationProgressIndicator setProgress:(self.intermediateResourceLength / [self.responseSize floatValue]) animated:YES];
+    } else {
+        //set download progress bar style as intermediate
+    }
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
@@ -319,7 +351,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     self.timeoutTimer = nil;
-	
+	[self.operationProgressIndicator setProgress:0.0 animated:YES];
 	NSLog(@"requestFailed: %@", [error localizedDescription]);
 	self.operationCompletionBlock(nil, error);
     
