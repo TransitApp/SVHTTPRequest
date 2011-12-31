@@ -20,6 +20,10 @@
 - (NSString*)encodedURLParameterString;
 @end
 
+@interface UIDevice (SVHTTPRequest)
+- (NSString*)deviceType;
+@end
+
 enum {
     SVHTTPRequestStateReady = 0,
     SVHTTPRequestStateExecuting,
@@ -118,6 +122,13 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
     [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
     [self.operationRequest setHTTPMethod:method];
+    
+    // USER_AGENT is set as follow: Demo/1.0 iOS/5.0 iPhone3,1 
+    NSString *userAgent = [NSString stringWithFormat:@"%@/%@ iOS/%@ %@", 
+                           [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleName"], [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"], 
+                           [[UIDevice currentDevice] systemVersion],
+                           [[UIDevice currentDevice] deviceType]];
+    [self.operationRequest setValue:userAgent forHTTPHeaderField:@"USER_AGENT"];
     
     if(parameters)
         [self addParametersToRequest:parameters];
@@ -318,6 +329,37 @@ typedef NSUInteger SVHTTPRequestState;
 @end
 
 #pragma mark - Utility methods
+
+@implementation UIDevice (SVHTTPRequest)
+
+#include <sys/socket.h> // Per msqr
+#include <sys/sysctl.h>
+#include <net/if.h>
+#include <net/if_dl.h>
+
+- (NSString*)deviceType {
+    size_t size;
+    
+    // Set 'oldp' parameter to NULL to get the size of the data
+    // returned so we can allocate appropriate amount of space
+    sysctlbyname("hw.machine", NULL, &size, NULL, 0); 
+    
+    // Allocate the space to store name
+    char *name = malloc(size);
+    
+    // Get the platform name
+    sysctlbyname("hw.machine", name, &size, NULL, 0);
+    
+    // Place name into a string
+    NSString *machine = [NSString stringWithCString:name encoding:NSUTF8StringEncoding];
+    
+    // Done with this
+    free(name);
+    
+    return machine;
+}
+
+@end
 
 // Created by Jon Crosby on 10/19/07.
 // Copyright 2007 Kaboomerang LLC. All rights reserved.
