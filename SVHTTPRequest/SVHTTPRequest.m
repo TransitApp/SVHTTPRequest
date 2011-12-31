@@ -71,6 +71,8 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationFileHandle = nil;
     self.operationSavePath = nil;
     self.timeoutTimer = nil;
+    self.operationProgressIndicator = nil;
+    self.responseSize = nil;
     
 	[super dealloc];
 }
