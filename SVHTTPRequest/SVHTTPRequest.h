@@ -15,6 +15,7 @@
 
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))block;
++ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSError *error))completionBlock;
 + (SVHTTPRequest*)POST:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
@@ -30,7 +31,8 @@
                                   method:(NSString*)method 
                               parameters:(NSDictionary*)parameters 
                               saveToPath:(NSString*)savePath
-                              completion:(void (^)(id, NSError*))block;
+                                progress:(void (^)(float))progressBlock
+                              completion:(void (^)(id, NSError*))completionBlock;
 
 - (void)signRequestWithUsername:(NSString*)username password:(NSString*)password;
 
