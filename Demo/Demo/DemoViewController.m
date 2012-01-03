@@ -53,10 +53,10 @@
     [SVHTTPRequest GET:@"http://sanjosetransit.com/extras/SJTransit_Icons.zip" 
             parameters:nil saveToPath:@"/Volumes/Data/test2.zip" 
               progress:^(float progress) {
-                  progressLabel.text = [NSString stringWithFormat:@"Downloading... %.2f%", progress*100];
+                  progressLabel.text = [NSString stringWithFormat:@"Downloading (%.0f%%)", progress*100];
               } 
             completion:^(id response, NSError *error) {
-                progressLabel.text = @"Download complete.";
+                progressLabel.text = @"Download complete";
             }];
 }
 
