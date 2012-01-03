@@ -323,7 +323,8 @@ typedef NSUInteger SVHTTPRequestState;
             self.intermediateResourceLength += [data length];
             self.operationProgressBlock(self.intermediateResourceLength / [self.responseSize floatValue]);
         } else {
-            //set download progress bar style as intermediate
+            //we dont know the full size so always return -1 as the progress
+            self.operationProgressBlock(-1);
         }
     }
 }
