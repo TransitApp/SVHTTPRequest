@@ -10,10 +10,11 @@
 
 @interface DemoViewController : UIViewController {
     IBOutlet UIImageView *twitterImageView;
-    IBOutlet UILabel *watchersLabel, *followersLabel;
+    IBOutlet UILabel *watchersLabel, *followersLabel, *progressLabel;
 }
 
 - (IBAction)watchersRequest;
 - (IBAction)twitterRequest;
+- (IBAction)progressRequest;
 
 @end

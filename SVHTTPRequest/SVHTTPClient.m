@@ -110,7 +110,7 @@
 
 - (void)queueRequest:(NSString*)urlString withMethod:(NSString*)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id, NSError*))block  {
     NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath?self.basePath:@"", urlString];
-    SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initRequestWithAddress:completeURLString method:method parameters:parameters saveToPath:savePath completion:block];
+    SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initRequestWithAddress:completeURLString method:method parameters:parameters saveToPath:savePath progress:nil completion:block];
     
     if(self.username && self.password)
         [(id<SVHTTPRequestPrivateMethods>)requestOperation signRequestWithUsername:self.username password:self.password];

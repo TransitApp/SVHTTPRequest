@@ -46,5 +46,19 @@
                           }];
 }
 
+- (IBAction)progressRequest {
+    
+    progressLabel.text = nil;
+    
+    [SVHTTPRequest GET:@"http://sanjosetransit.com/extras/SJTransit_Icons.zip" 
+            parameters:nil saveToPath:@"/Volumes/Data/test2.zip" 
+              progress:^(float progress) {
+                  progressLabel.text = [NSString stringWithFormat:@"Downloading... %.2f%", progress*100];
+              } 
+            completion:^(id response, NSError *error) {
+                progressLabel.text = @"Download complete.";
+            }];
+}
+
 
 @end
