@@ -16,11 +16,13 @@
 - (void)setBasePath:(NSString*)path;
 - (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
 
-- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
-- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))block;
-- (void)POST:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
-- (void)PUT:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
-- (void)DELETE:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
+- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
+- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))completionBlock;
+- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSError *error))completionBlock;
+
+- (void)POST:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
+- (void)PUT:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
+- (void)DELETE:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
 
 - (void)cancelAllRequests;
 

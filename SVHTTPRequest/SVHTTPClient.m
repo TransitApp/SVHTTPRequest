@@ -18,7 +18,12 @@
 
 @property (nonatomic, assign) NSOperationQueue *operationQueue;
 
-- (void)queueRequest:(NSString*)urlString withMethod:(NSString*)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id, NSError*))block;
+- (void)queueRequest:(NSString*)urlString 
+          withMethod:(NSString*)method 
+          parameters:(NSDictionary*)parameters 
+          saveToPath:(NSString*)savePath 
+            progress:(void (^)(float))progressBlock
+          completion:(void (^)(id, NSError*))completionBlock;
 
 @end
 
@@ -82,24 +87,28 @@
 
 #pragma mark - Request Methods
 
-- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    [self queueRequest:path withMethod:@"GET" parameters:parameters saveToPath:nil completion:block];
+- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))completionBlock {
+    [self queueRequest:path withMethod:@"GET" parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath completion:(void (^)(id, NSError *))block {
-    [self queueRequest:path withMethod:@"GET" parameters:parameters saveToPath:savePath completion:block];
+- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath completion:(void (^)(id, NSError *))completionBlock {
+    [self queueRequest:path withMethod:@"GET" parameters:parameters saveToPath:savePath progress:nil completion:completionBlock];
 }
 
-- (void)POST:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    [self queueRequest:path withMethod:@"POST" parameters:parameters saveToPath:nil completion:block];
+- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(void (^)(id, NSError *))completionBlock {
+    [self queueRequest:path withMethod:@"GET" parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
 }
 
-- (void)PUT:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    [self queueRequest:path withMethod:@"PUT" parameters:parameters saveToPath:nil completion:block];
+- (void)POST:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))completionBlock {
+    [self queueRequest:path withMethod:@"POST" parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)DELETE:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    [self queueRequest:path withMethod:@"DELETE" parameters:parameters saveToPath:nil completion:block];
+- (void)PUT:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))completionBlock {
+    [self queueRequest:path withMethod:@"PUT" parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
+}
+
+- (void)DELETE:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))completionBlock {
+    [self queueRequest:path withMethod:@"DELETE" parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
 - (void)cancelAllRequests {
@@ -108,9 +117,15 @@
 
 #pragma mark -
 
-- (void)queueRequest:(NSString*)urlString withMethod:(NSString*)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id, NSError*))block  {
+- (void)queueRequest:(NSString*)urlString 
+          withMethod:(NSString*)method 
+          parameters:(NSDictionary*)parameters 
+          saveToPath:(NSString*)savePath 
+            progress:(void (^)(float))progressBlock 
+          completion:(void (^)(id, NSError *))completionBlock  {
+    
     NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath?self.basePath:@"", urlString];
-    SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initRequestWithAddress:completeURLString method:method parameters:parameters saveToPath:savePath progress:nil completion:block];
+    SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initRequestWithAddress:completeURLString method:method parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     
     if(self.username && self.password)
         [(id<SVHTTPRequestPrivateMethods>)requestOperation signRequestWithUsername:self.username password:self.password];
