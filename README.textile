@@ -6,7 +6,7 @@ SVHTTPRequest is a simple and extremely straightforward way to communicate with 
 
 **SVHTTPRequest features:**
 
-* straightforward singleton convenience methods for making GET, POST, PUT and DELETE requests.
+* straightforward singleton convenience methods for making GET, POST, PUT, DELETE and download requests.
 * completion block handler (returns @NSObject@ if response is JSON, otherwise @NSData@ or @NSError@)
 * persistent @basePath@ and basic authentication signing when using @SVHTTPClient@.
 * support for @multipart/form-data@ parameters in POST and PUT requests.
@@ -56,33 +56,22 @@ If most of your requests are made to the same API endpoint, you can use @SVHTTPC
                       }];
 </pre> 
 
-SVHTTPClient also allows you to sign all requests using "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication with @setBasicAuthWithUsername:password:@.
+All of SVHTTPRequest's methods can also be called on @sharedClient@. In addition, SVHTTPClient allows you to sign all outgoing requests for "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication using @setBasicAuthWithUsername:password:@.
 
-h3. Saving a GET response to disk
+h3. Making a download request
 
-You can tell SVHTTPRequest to save a GET response directly to disk (to avoid filling up your memory with it):
+You can tell SVHTTPRequest to save a GET response directly to disk and track the progress along the way:
 
 <pre>
 [SVHTTPRequest GET:@"http://example.com/db.sqlite.zip" 
         parameters:nil 
         saveToPath:[[NSHomeDirectory() stringByAppendingPathComponent:@"Documents"] stringByAppendingPathComponent:@"store.zip"]
-        completion:^(id response, NSError *error) {
-            // process file
-        }];
-</pre>
-
-h3. Saving a GET response to disk with progress
-
-You can ask SVHTTPRequest to give you intermediate progress value while saving a file to disk:
-
-<pre>
-[SVHTTPRequest GET:@"http://example.com/download.zip" 
-        parameters:nil saveToPath:@"/Volumes/Data/test.zip" 
           progress:^(float progress) {
-              progressLabel.text = [NSString stringWithFormat:@"Downloading... %.2f%", progress*100];
+              progressLabel.text = [NSString stringWithFormat:@"Downloading (%.0f%%)", progress*100];
           } 
         completion:^(id response, NSError *error) {
-            progressLabel.text = @"Download complete.";
+            progressLabel.text = @"Download complete";
+            // process file
         }];
 </pre>
                         
