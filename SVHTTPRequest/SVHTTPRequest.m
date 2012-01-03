@@ -47,8 +47,8 @@ typedef NSUInteger SVHTTPRequestState;
 
 @property (nonatomic, retain) NSTimer *timeoutTimer; // see http://stackoverflow.com/questions/2736967
 
-@property (nonatomic, retain) NSNumber *responseSize;
-@property (nonatomic, readwrite) NSUInteger intermediateResourceLength;
+@property (nonatomic, readwrite) float expectedContentLength;
+@property (nonatomic, readwrite) float receivedContentLength;
 
 - (void)addParametersToRequest:(NSDictionary*)paramsDict;
 - (void)finish;
@@ -63,7 +63,7 @@ typedef NSUInteger SVHTTPRequestState;
 // private properties
 @synthesize operationRequest, operationData, operationConnection, operationFileHandle, state;
 @synthesize operationSavePath, operationCompletionBlock, operationProgressBlock, timeoutTimer;
-@synthesize responseSize, intermediateResourceLength;
+@synthesize expectedContentLength, receivedContentLength;
 	
 - (void)dealloc {
     [operationData release];
@@ -76,7 +76,6 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationFileHandle = nil;
     self.operationSavePath = nil;
     self.timeoutTimer = nil;
-    self.responseSize = nil;
     
 	[super dealloc];
 }
@@ -103,6 +102,7 @@ typedef NSUInteger SVHTTPRequestState;
     
     return [requestObject autorelease];
 }
+
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
     SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"POST" parameters:parameters saveToPath:nil progress:nil completion:block];
@@ -306,9 +306,8 @@ typedef NSUInteger SVHTTPRequestState;
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    self.responseSize = [NSNumber numberWithLongLong:[response expectedContentLength]];
-    self.intermediateResourceLength = 0;
-    NSLog(@"content-length: %@ bytes", self.responseSize);
+    self.expectedContentLength = response.expectedContentLength;
+    self.receivedContentLength = 0;
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
@@ -319,9 +318,9 @@ typedef NSUInteger SVHTTPRequestState;
     
     if (self.operationProgressBlock) {
         //If its -1 that means the header does not have the content size value
-        if ([self.responseSize intValue]!=-1) {
-            self.intermediateResourceLength += [data length];
-            self.operationProgressBlock(self.intermediateResourceLength / [self.responseSize floatValue]);
+        if(self.expectedContentLength != -1) {
+            self.receivedContentLength += data.length;
+            self.operationProgressBlock(self.receivedContentLength/self.expectedContentLength);
         } else {
             //we dont know the full size so always return -1 as the progress
             self.operationProgressBlock(-1);
