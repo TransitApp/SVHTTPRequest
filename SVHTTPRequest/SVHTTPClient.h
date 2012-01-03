@@ -17,7 +17,7 @@
 - (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
 
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
-- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))completionBlock;
+- (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))completionBlock DEPRECATED_ATTRIBUTE;
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSError *error))completionBlock;
 
 - (void)POST:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;

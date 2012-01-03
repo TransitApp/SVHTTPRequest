@@ -51,7 +51,8 @@
     progressLabel.text = nil;
     
     [SVHTTPRequest GET:@"http://sanjosetransit.com/extras/SJTransit_Icons.zip" 
-            parameters:nil saveToPath:@"/Volumes/Data/test2.zip" 
+            parameters:nil 
+            saveToPath:@"/Volumes/Data/test2.zip" 
               progress:^(float progress) {
                   progressLabel.text = [NSString stringWithFormat:@"Downloading (%.0f%%)", progress*100];
               } 

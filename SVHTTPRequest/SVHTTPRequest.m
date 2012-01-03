@@ -316,7 +316,7 @@ typedef NSUInteger SVHTTPRequestState;
     else
         [self.operationData appendData:data];
     
-    if (self.operationProgressBlock) {
+    if(self.operationProgressBlock) {
         //If its -1 that means the header does not have the content size value
         if(self.expectedContentLength != -1) {
             self.receivedContentLength += data.length;

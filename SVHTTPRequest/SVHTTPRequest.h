@@ -8,13 +8,14 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <AvailabilityMacros.h>
 
 #import "SVHTTPClient.h"
 
 @interface SVHTTPRequest : NSOperation
 
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
-+ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))block;
++ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))block DEPRECATED_ATTRIBUTE;
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSError *error))completionBlock;
 
 + (SVHTTPRequest*)POST:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
