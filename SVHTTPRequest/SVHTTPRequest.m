@@ -322,8 +322,8 @@ typedef NSUInteger SVHTTPRequestState;
             self.receivedContentLength += data.length;
             self.operationProgressBlock(self.receivedContentLength/self.expectedContentLength);
         } else {
-            //we dont know the full size so always return 0 as the progress
-            self.operationProgressBlock(0);
+            //we dont know the full size so always return -1 as the progress
+            self.operationProgressBlock(-1);
         }
     }
 }
