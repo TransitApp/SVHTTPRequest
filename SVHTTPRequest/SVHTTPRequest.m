@@ -265,7 +265,7 @@ typedef NSUInteger SVHTTPRequestState;
 // private method; not part of NSOperation
 - (void)finish {
     [self.operationConnection cancel];
-    [self.operationConnection release];
+    [operationConnection release];
     operationConnection = nil;
     
     [self willChangeValueForKey:@"isExecuting"];
