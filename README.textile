@@ -7,7 +7,7 @@ SVHTTPRequest is a simple and extremely straightforward way to communicate with 
 **SVHTTPRequest features:**
 
 * straightforward singleton convenience methods for making GET, POST, PUT, DELETE and download requests.
-* completion block handler (returns @NSObject@ if response is JSON, otherwise @NSData@ or @NSError@)
+* completion block handler returning @response@ (@NSObject@ if JSON, otherwise @NSData@) and @error@.
 * persistent @basePath@ and basic authentication signing when using @SVHTTPClient@.
 * support for @multipart/form-data@ parameters in POST and PUT requests.
 * talks with @setNetworkActivityIndicatorVisible@
