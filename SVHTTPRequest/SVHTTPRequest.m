@@ -54,6 +54,7 @@ typedef NSUInteger SVHTTPRequestState;
 - (void)finish;
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error;
+- (void)callCompletionBlockWithResponse:(id)response error:(NSError*)error;
 
 @end
 
@@ -273,8 +274,6 @@ typedef NSUInteger SVHTTPRequestState;
     self.state = SVHTTPRequestStateFinished;    
     [self didChangeValueForKey:@"isExecuting"];
     [self didChangeValueForKey:@"isFinished"];
-    
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 }
 
 - (void)cancel {
@@ -282,7 +281,7 @@ typedef NSUInteger SVHTTPRequestState;
         return;
     
     [super cancel];
-    [self finish];
+    [self callCompletionBlockWithResponse:nil error:nil];
 }
 
 - (BOOL)isConcurrent {
@@ -342,17 +341,19 @@ typedef NSUInteger SVHTTPRequestState;
             response = jsonObject;
     }
     
-    if(self.operationCompletionBlock)
-        self.operationCompletionBlock(response, nil);
-        
-    [self finish];
+    [self callCompletionBlockWithResponse:response error:nil];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     self.timeoutTimer = nil;
-	
-	NSLog(@"requestFailed: %@", [error localizedDescription]);
-	self.operationCompletionBlock(nil, error);
+    [self callCompletionBlockWithResponse:nil error:error];
+}
+
+- (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+    
+    if(self.operationCompletionBlock && (response || error))
+        self.operationCompletionBlock(response, error);
     
     [self finish];
 }
