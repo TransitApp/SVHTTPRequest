@@ -352,7 +352,7 @@ typedef NSUInteger SVHTTPRequestState;
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     
-    if(self.operationCompletionBlock && (response || error))
+    if(self.operationCompletionBlock && !self.isCancelled)
         self.operationCompletionBlock(response, error);
     
     [self finish];
