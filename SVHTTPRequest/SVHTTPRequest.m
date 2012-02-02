@@ -337,7 +337,6 @@ typedef NSUInteger SVHTTPRequestState;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    self.timeoutTimer = nil;
     id response = nil;
     
     if(self.operationData && self.operationData.length > 0) {
@@ -354,11 +353,11 @@ typedef NSUInteger SVHTTPRequestState;
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    self.timeoutTimer = nil;
     [self callCompletionBlockWithResponse:nil error:error];
 }
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
+    self.timeoutTimer = nil;
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     
     if(self.operationCompletionBlock && !self.isCancelled)
