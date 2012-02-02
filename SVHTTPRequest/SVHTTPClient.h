@@ -24,6 +24,7 @@
 - (void)PUT:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
 - (void)DELETE:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
 
+- (void)cancelRequestsWithPath:(NSString*)path;
 - (void)cancelAllRequests;
 
 @end

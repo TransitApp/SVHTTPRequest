@@ -18,7 +18,7 @@
 
 @property (nonatomic, assign) NSOperationQueue *operationQueue;
 
-- (void)queueRequest:(NSString*)urlString 
+- (void)queueRequest:(NSString*)path 
           withMethod:(NSString*)method 
           parameters:(NSDictionary*)parameters 
           saveToPath:(NSString*)savePath 
@@ -111,25 +111,36 @@
     [self queueRequest:path withMethod:@"DELETE" parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
+#pragma mark - Operation Cancelling
+
+- (void)cancelRequestsWithPath:(NSString *)path {
+    [self.operationQueue.operations enumerateObjectsUsingBlock:^(id request, NSUInteger idx, BOOL *stop) {
+        NSString *requestPath = [request valueForKey:@"requestPath"];
+        if([requestPath isEqualToString:path])
+            [request cancel];
+    }];
+}
+
 - (void)cancelAllRequests {
     [self.operationQueue cancelAllOperations];
 }
 
 #pragma mark -
 
-- (void)queueRequest:(NSString*)urlString 
+- (void)queueRequest:(NSString*)path 
           withMethod:(NSString*)method 
           parameters:(NSDictionary*)parameters 
           saveToPath:(NSString*)savePath 
             progress:(void (^)(float))progressBlock 
           completion:(void (^)(id, NSError *))completionBlock  {
     
-    NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath?self.basePath:@"", urlString];
+    NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath, path];
     SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initRequestWithAddress:completeURLString method:method parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     
     if(self.username && self.password)
         [(id<SVHTTPRequestPrivateMethods>)requestOperation signRequestWithUsername:self.username password:self.password];
     
+    [(id<SVHTTPRequestPrivateMethods>)requestOperation setRequestPath:path];
     [self.operationQueue addOperation:requestOperation];
     [requestOperation release];
 }

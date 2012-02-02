@@ -29,6 +29,8 @@
 
 @protocol SVHTTPRequestPrivateMethods <NSObject>
 
+@property (nonatomic, retain) NSString *requestPath;
+
 - (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString 
                                   method:(NSString*)method 
                               parameters:(NSDictionary*)parameters 

@@ -44,6 +44,7 @@ typedef NSUInteger SVHTTPRequestState;
 @property (nonatomic, copy) void (^operationProgressBlock)(float progress);
 
 @property (nonatomic, readwrite) SVHTTPRequestState state;
+@property (nonatomic, retain) NSString *requestPath;
 
 @property (nonatomic, retain) NSTimer *timeoutTimer; // see http://stackoverflow.com/questions/2736967
 
@@ -65,6 +66,7 @@ typedef NSUInteger SVHTTPRequestState;
 @synthesize operationRequest, operationData, operationConnection, operationFileHandle, state;
 @synthesize operationSavePath, operationCompletionBlock, operationProgressBlock, timeoutTimer;
 @synthesize expectedContentLength, receivedContentLength;
+@synthesize requestPath;
 	
 - (void)dealloc {
     [operationData release];
@@ -77,6 +79,7 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationFileHandle = nil;
     self.operationSavePath = nil;
     self.timeoutTimer = nil;
+    self.requestPath = nil;
     
 	[super dealloc];
 }

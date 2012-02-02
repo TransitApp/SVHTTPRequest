@@ -89,7 +89,7 @@ SVHTTPRequest *request = [SVHTTPRequest GET:@"http://api.twitter.com/1/users/sho
 [request cancel];
 </pre>
 
-If you're using SVHTTPClient, you can do that by calling @cancelAllRequests@.
+If you're using SVHTTPClient, you can do that by calling @cancelRequestsWithPath:@ or @cancelAllRequests@.
 
 h2. Under the hood
 
