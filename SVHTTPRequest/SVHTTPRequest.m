@@ -347,18 +347,23 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     id response = nil;
+    NSError *JSONError;
     
     if(self.operationData && self.operationData.length > 0) {
         response = [NSData dataWithData:self.operationData];
+        NSDictionary *jsonObject;
         
         // try to parse JSON. If image or XML, will return raw NSData object
-        NSDictionary *jsonObject = [response objectFromJSONData];
+        if([NSJSONSerialization respondsToSelector:@selector(class)])
+            jsonObject = [NSJSONSerialization JSONObjectWithData:response options:0 error:&JSONError];
+        else
+            jsonObject = [response objectFromJSONDataWithParseOptions:0 error:&JSONError];
         
         if(jsonObject)
             response = jsonObject;
     }
     
-    [self callCompletionBlockWithResponse:response error:nil];
+    [self callCompletionBlockWithResponse:response error:JSONError];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
