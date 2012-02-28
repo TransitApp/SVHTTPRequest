@@ -12,6 +12,16 @@
 
 #import "SVHTTPClient.h"
 
+enum {
+	SVHTTPRequestMethodGET = 0,
+    SVHTTPRequestMethodPOST,
+    SVHTTPRequestMethodPUT,
+    SVHTTPRequestMethodDELETE
+};
+
+typedef NSUInteger SVHTTPRequestMethod;
+
+
 @interface SVHTTPRequest : NSOperation
 
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
@@ -21,6 +31,11 @@
 + (SVHTTPRequest*)POST:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
+
+- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString 
+                                  method:(SVHTTPRequestMethod)method 
+                              parameters:(NSDictionary*)parameters 
+                              completion:(void (^)(id, NSError*))completionBlock;
 
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 
@@ -34,7 +49,7 @@
 @property (nonatomic, retain) NSString *requestPath;
 
 - (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString 
-                                  method:(NSString*)method 
+                                  method:(SVHTTPRequestMethod)method 
                               parameters:(NSDictionary*)parameters 
                               saveToPath:(NSString*)savePath
                                 progress:(void (^)(float))progressBlock

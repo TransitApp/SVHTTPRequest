@@ -89,21 +89,21 @@ typedef NSUInteger SVHTTPRequestState;
 #pragma mark - Convenience Methods
 
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:nil progress:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath completion:(void (^)(id, NSError *))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:savePath progress:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(void (^)(id, NSError *))completionBlock {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"GET" parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     [requestObject start];
     
     return [requestObject autorelease];
@@ -111,21 +111,21 @@ typedef NSUInteger SVHTTPRequestState;
 
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"POST" parameters:parameters saveToPath:nil progress:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"PUT" parameters:parameters saveToPath:nil progress:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodPUT parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
 }
 
 + (SVHTTPRequest*)DELETE:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:@"DELETE" parameters:parameters saveToPath:nil progress:nil completion:block];
+    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodDELETE parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
     
     return [requestObject autorelease];
@@ -134,7 +134,11 @@ typedef NSUInteger SVHTTPRequestState;
 
 #pragma mark -
 
-- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString method:(NSString*)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float))progressBlock completion:(void (^)(id, NSError*))completionBlock  {
+- (SVHTTPRequest*)initRequestWithAddress:(NSString *)urlString method:(SVHTTPRequestMethod)method parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError *))completionBlock {
+    return [(id<SVHTTPRequestPrivateMethods>)self initRequestWithAddress:urlString method:method parameters:parameters saveToPath:nil progress:NULL completion:completionBlock];
+}
+
+- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString method:(SVHTTPRequestMethod)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float))progressBlock completion:(void (^)(id, NSError*))completionBlock  {
     self = [super init];
     self.operationCompletionBlock = completionBlock;
     self.operationProgressBlock = progressBlock;
@@ -142,7 +146,15 @@ typedef NSUInteger SVHTTPRequestState;
 
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
     [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
-    [self.operationRequest setHTTPMethod:method];
+    
+    if(method == SVHTTPRequestMethodGET)
+        [self.operationRequest setHTTPMethod:@"GET"];
+    else if(method == SVHTTPRequestMethodPOST)
+        [self.operationRequest setHTTPMethod:@"POST"];
+    else if(method == SVHTTPRequestMethodPUT)
+        [self.operationRequest setHTTPMethod:@"PUT"];
+    else if(method == SVHTTPRequestMethodDELETE)
+        [self.operationRequest setHTTPMethod:@"DELETE"];
     
     // USER_AGENT is set as follow: Demo/1.0 iOS/5.0 iPhone3,1 
     NSString *userAgent = [NSString stringWithFormat:@"%@/%@ iOS/%@ %@", 
