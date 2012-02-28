@@ -22,6 +22,8 @@
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 
+@property (nonatomic, readwrite) BOOL sendParametersAsJSON;
+
 @end
 
 

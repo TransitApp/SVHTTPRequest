@@ -15,6 +15,7 @@
 
 - (void)setBasePath:(NSString*)path;
 - (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
+- (void)setSendParametersAsJSON:(BOOL)encode;
 
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath completion:(void (^)(id response, NSError *error))completionBlock DEPRECATED_ATTRIBUTE;

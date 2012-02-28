@@ -62,6 +62,8 @@ typedef NSUInteger SVHTTPRequestState;
 
 @implementation SVHTTPRequest
 
+@synthesize sendParametersAsJSON;
+
 // private properties
 @synthesize operationRequest, operationData, operationConnection, operationFileHandle, state;
 @synthesize operationSavePath, operationCompletionBlock, operationProgressBlock, timeoutTimer;
@@ -204,7 +206,9 @@ typedef NSUInteger SVHTTPRequestState;
         baseAddress = [baseAddress stringByAppendingFormat:@"?%@", [stringParameters componentsJoinedByString:@"&"]];
         [self.operationRequest setURL:[NSURL URLWithString:baseAddress]];
     }
-    
+    else if(self.sendParametersAsJSON) {
+        [self.operationRequest setHTTPBody:[paramsDict JSONData]];
+    }
     else {
         const char *stringData = [parameterString UTF8String];
         NSMutableData *postData = [NSMutableData dataWithBytes:stringData length:strlen(stringData)];

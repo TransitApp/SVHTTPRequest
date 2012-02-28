@@ -15,6 +15,7 @@
 @property (nonatomic, retain) NSString *basePath;
 @property (nonatomic, retain) NSString *username;
 @property (nonatomic, retain) NSString *password;
+@property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 
 @property (nonatomic, assign) NSOperationQueue *operationQueue;
 
@@ -30,7 +31,7 @@
 
 @implementation SVHTTPClient
 
-@synthesize username, password, basePath, operationQueue;
+@synthesize username, password, basePath, sendParametersAsJSON, operationQueue;
 
 - (void)dealloc {
     self.basePath = nil;
@@ -85,6 +86,10 @@
     }
 }
 
+- (void)setSendParametersAsJSON:(BOOL)encode {
+    self.sendParametersAsJSON = encode;
+}
+
 #pragma mark - Request Methods
 
 - (void)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))completionBlock {
@@ -136,6 +141,7 @@
     
     NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath, path];
     SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initRequestWithAddress:completeURLString method:method parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
+    requestOperation.sendParametersAsJSON = self.sendParametersAsJSON;
     
     if(self.username && self.password)
         [(id<SVHTTPRequestPrivateMethods>)requestOperation signRequestWithUsername:self.username password:self.password];
