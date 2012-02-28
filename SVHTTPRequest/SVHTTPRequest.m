@@ -349,7 +349,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     id response = nil;
-    NSError *JSONError;
+    NSError *JSONError = nil;
     
     if(self.operationData && self.operationData.length > 0) {
         response = [NSData dataWithData:self.operationData];
