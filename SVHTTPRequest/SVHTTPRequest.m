@@ -38,6 +38,7 @@ typedef NSUInteger SVHTTPRequestState;
 @property (nonatomic, assign) NSMutableData *operationData;
 @property (nonatomic, retain) NSFileHandle *operationFileHandle;
 @property (nonatomic, assign) NSURLConnection *operationConnection;
+@property (nonatomic, retain) NSDictionary *operationParameters;
 
 @property (nonatomic, retain) NSString *operationSavePath;
 @property (nonatomic, copy) void (^operationCompletionBlock)(id response, NSError *error);
@@ -65,7 +66,7 @@ typedef NSUInteger SVHTTPRequestState;
 @synthesize sendParametersAsJSON, cachePolicy;
 
 // private properties
-@synthesize operationRequest, operationData, operationConnection, operationFileHandle, state;
+@synthesize operationRequest, operationData, operationConnection, operationParameters, operationFileHandle, state;
 @synthesize operationSavePath, operationCompletionBlock, operationProgressBlock, timeoutTimer;
 @synthesize expectedContentLength, receivedContentLength;
 @synthesize requestPath;
@@ -77,6 +78,7 @@ typedef NSUInteger SVHTTPRequestState;
     [operationConnection release];
     
     self.operationCompletionBlock = nil;
+    self.operationParameters = nil;
     self.operationProgressBlock = nil;
     self.operationFileHandle = nil;
     self.operationSavePath = nil;
@@ -135,10 +137,10 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationCompletionBlock = completionBlock;
     self.operationProgressBlock = progressBlock;
     self.operationSavePath = savePath;
+    self.operationParameters = parameters;
 
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
     [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
-    [self.operationRequest setCachePolicy:self.cachePolicy];
     
     if(method == SVHTTPRequestMethodGET)
         [self.operationRequest setHTTPMethod:@"GET"];
@@ -155,10 +157,6 @@ typedef NSUInteger SVHTTPRequestState;
                            [[UIDevice currentDevice] systemVersion],
                            [[UIDevice currentDevice] deviceType]];
     [self.operationRequest setValue:userAgent forHTTPHeaderField:@"USER_AGENT"];
-    
-    if(parameters)
-        [self addParametersToRequest:parameters];
-    
     self.state = SVHTTPRequestStateReady;
 
     return self;
@@ -259,6 +257,9 @@ typedef NSUInteger SVHTTPRequestState;
     
     [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
     
+    if(self.operationParameters)
+        [self addParametersToRequest:self.operationParameters];
+    
     [self willChangeValueForKey:@"isExecuting"];
     self.state = SVHTTPRequestStateExecuting;    
     [self didChangeValueForKey:@"isExecuting"];
@@ -271,6 +272,7 @@ typedef NSUInteger SVHTTPRequestState;
         self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kSVHTTPRequestTimeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
     }
     
+    [self.operationRequest setCachePolicy:self.cachePolicy];
     self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:NO];
     
     if(self.operationSavePath) // schedule on main run loop so scrolling doesn't prevent UI updates of the progress block
