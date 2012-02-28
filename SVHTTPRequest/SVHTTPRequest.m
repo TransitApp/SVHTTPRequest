@@ -62,7 +62,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 @implementation SVHTTPRequest
 
-@synthesize sendParametersAsJSON;
+@synthesize sendParametersAsJSON, cachePolicy;
 
 // private properties
 @synthesize operationRequest, operationData, operationConnection, operationFileHandle, state;
@@ -146,6 +146,7 @@ typedef NSUInteger SVHTTPRequestState;
 
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
     [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
+    [self.operationRequest setCachePolicy:self.cachePolicy];
     
     if(method == SVHTTPRequestMethodGET)
         [self.operationRequest setHTTPMethod:@"GET"];
