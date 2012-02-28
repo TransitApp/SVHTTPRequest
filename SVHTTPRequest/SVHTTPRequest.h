@@ -31,10 +31,10 @@ typedef NSUInteger SVHTTPRequestMethod;
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
 
-- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString 
+- (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
                                   method:(SVHTTPRequestMethod)method 
                               parameters:(NSDictionary*)parameters 
-                              completion:(void (^)(id, NSError*))completionBlock;
+                              completion:(void (^)(id response, NSError* error))completionBlock;
 
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 @property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
@@ -48,7 +48,7 @@ typedef NSUInteger SVHTTPRequestMethod;
 
 @property (nonatomic, retain) NSString *requestPath;
 
-- (SVHTTPRequest*)initRequestWithAddress:(NSString*)urlString 
+- (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
                                   method:(SVHTTPRequestMethod)method 
                               parameters:(NSDictionary*)parameters 
                               saveToPath:(NSString*)savePath
