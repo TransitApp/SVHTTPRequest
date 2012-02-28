@@ -87,14 +87,6 @@
     }
 }
 
-- (void)setSendParametersAsJSON:(BOOL)encode {
-    self.sendParametersAsJSON = encode;
-}
-
-- (void)setCachePolicy:(NSURLRequestCachePolicy)policy {
-    self.cachePolicy = policy;
-}
-
 #pragma mark - Request Methods
 
 - (void)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))completionBlock {
