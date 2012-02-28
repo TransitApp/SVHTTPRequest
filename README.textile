@@ -64,6 +64,8 @@ SVHTTPRequest *request = [[SVHTTPRequest alloc] initWithAddress:@"http://github.
                                                      completion:^(id response, NSError *error) {
                                                          watchersLabel.text = [NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
                                                      }];
+request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+[request start];
 </pre>
 
 
