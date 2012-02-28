@@ -95,20 +95,12 @@ typedef NSUInteger SVHTTPRequestState;
     return [requestObject autorelease];
 }
 
-+ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath completion:(void (^)(id, NSError *))block {
-    SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:nil completion:block];
-    [requestObject start];
-    
-    return [requestObject autorelease];
-}
-
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(void (^)(id, NSError *))completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     [requestObject start];
     
     return [requestObject autorelease];
 }
-
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSError*))block {
     SVHTTPRequest *requestObject = [[self alloc] initRequestWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:block];
