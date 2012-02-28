@@ -2,7 +2,7 @@ __If you're upgrading from an earlier version of SVHTTPRequest, please see the t
 
 h1. SVHTTPRequest
 
-SVHTTPRequest is a simple and extremely straightforward way to communicate with RESTful web APIs. It's a simpler and cleaner alternative to bulky "ASIHTTPRequest":https://github.com/pokeb/asi-http-request/tree, "AFNetworking":https://github.com/AFNetworking/AFNetworking and "RESTKit":https://github.com/RestKit/RestKit. It is blocked-based, uses NSURLConnection as well as the blazing fast "JSONKit":https://github.com/johnezang/JSONKit (included in package) to automatically parse JSON responses.
+SVHTTPRequest is a simple and extremely straightforward way to communicate with RESTful web APIs. It's a simpler and cleaner alternative to bulky "ASIHTTPRequest":https://github.com/pokeb/asi-http-request/tree, "AFNetworking":https://github.com/AFNetworking/AFNetworking and "RESTKit":https://github.com/RestKit/RestKit. It is blocked-based, uses @NSURLConnection@ as well as @NSJSONSerialization@ (if available, otherwise "JSONKit":https://github.com/johnezang/JSONKit - included in package) to automatically parse JSON responses.
 
 **SVHTTPRequest features:**
 
@@ -10,7 +10,6 @@ SVHTTPRequest is a simple and extremely straightforward way to communicate with 
 * completion block handler returning @response@ (@NSObject@ if JSON, otherwise @NSData@) and @error@.
 * persistent @basePath@ and basic authentication signing when using @SVHTTPClient@.
 * support for @multipart/form-data@ parameters in POST and PUT requests.
-* talks with @setNetworkActivityIndicatorVisible@
 
 h2. Installation
 
@@ -21,21 +20,7 @@ h2. Usage
 
 (see sample Xcode project in @/Demo@)
 
-SVHTTPRequest was designed to be the most straightforward possible:
-
-<pre>
-[SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
-        parameters:nil
-        completion:^(id response, NSError *error) {
-            NSLog(@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
-        }];
-</pre>
-
-You can replace @GET@ with @POST@, @PUT@ or @DELETE@.
-
-h3. Using a shared client
-
-If most of your requests are made to the same API endpoint, you can use @SVHTTPClient@ and set its @basePath@ parameter:
+If most of your requests are made to the same API endpoint, use @SVHTTPClient@ and set parameters (@basePath@, @cachePolicy@, @sendParametersAsJSON@) that will be used for each request made:
 
 <pre>
 [[SVHTTPClient sharedClient] setBasePath:@"http://api.twitter.com/1/"];
@@ -56,7 +41,31 @@ If most of your requests are made to the same API endpoint, you can use @SVHTTPC
                       }];
 </pre> 
 
-All of SVHTTPRequest's methods can also be called on @sharedClient@. In addition, SVHTTPClient allows you to sign all outgoing requests for "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication using @setBasicAuthWithUsername:password:@.
+In addition, SVHTTPClient allows you to sign all outgoing requests for "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication using @setBasicAuthWithUsername:password:@.
+
+h3. Making individual requests
+
+You can still make individual requests using similar convenience methods:
+
+<pre>
+[SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
+        parameters:nil
+        completion:^(id response, NSError *error) {
+            NSLog(@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
+        }];
+</pre>
+
+As always, you can replace @GET@ with @POST@, @PUT@ or @DELETE@. If you would like to set advanced attributes (such as @cachePolicy@, @sendParametersAsJSON@) to an individual request, you'll need to alloc/init the request, set the attributes, and then call @start@:
+
+<pre>
+SVHTTPRequest *request = [[SVHTTPRequest alloc] initWithAddress:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
+                                                         method:SVHTTPRequestMethodGET 
+                                                     parameters:nil 
+                                                     completion:^(id response, NSError *error) {
+                                                         watchersLabel.text = [NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
+                                                     }];
+</pre>
+
 
 h3. Making a download request
 

@@ -18,7 +18,8 @@
     
     SVHTTPRequest *request = [[SVHTTPRequest alloc] initWithAddress:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
                                                              method:SVHTTPRequestMethodGET 
-                                                         parameters:nil completion:^(id response, NSError *error) {
+                                                         parameters:nil 
+                                                         completion:^(id response, NSError *error) {
                                                              watchersLabel.text = [NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
                                                          }];
     request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
