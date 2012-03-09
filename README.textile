@@ -19,32 +19,7 @@ h2. Usage
 
 (see sample Xcode project in @/Demo@)
 
-If most of your requests are made to the same API endpoint, use @SVHTTPClient@ and set parameters (@basePath@, @cachePolicy@, @sendParametersAsJSON@) that will be used for each request made:
-
-<pre>
-[[SVHTTPClient sharedClient] setBasePath:@"http://api.twitter.com/1/"];
-
-[[SVHTTPClient sharedClient] GET:@"users/profile_image"
-                      parameters:[NSDictionary dictionaryWithObjectsAndKeys:
-                                  @"samvermette", @"screen_name",
-                                  @"original", @"size",
-                                  nil]
-                      completion:^(id response, NSError *error) {
-                          twitterImageView.image = [UIImage imageWithData:response];
-                      }];
-
-[[SVHTTPClient sharedClient] GET:@"users/show.json"
-                      parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
-                      completion:^(id response, NSError *error) {
-                          followersLabel.text = [NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]];
-                      }];
-</pre> 
-
-In addition, SVHTTPClient allows you to sign all outgoing requests for "basic authentication":http://en.wikipedia.org/wiki/Basic_access_authentication using @setBasicAuthWithUsername:password:@.
-
-h3. Making individual requests
-
-You can still make individual requests using similar convenience methods:
+The easiest way to make a request is using the @SVHTTPRequest@ convenience methods:
 
 <pre>
 [SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
@@ -54,7 +29,19 @@ You can still make individual requests using similar convenience methods:
         }];
 </pre>
 
-As always, you can replace @GET@ with @POST@, @PUT@ or @DELETE@. If you would like to set advanced attributes (such as @cachePolicy@, @sendParametersAsJSON@) to an individual request, you'll need to alloc/init the request, set the attributes, and then call @start@:
+If most of your requests are made to the same API endpoint, you should instead use @SVHTTPClient@ so you can set parameters (@basePath@, @cachePolicy@, @sendParametersAsJSON@, @"userAgent@) that will be used for each request:
+
+<pre>
+[[SVHTTPClient sharedClient] setBasePath:@"http://api.twitter.com/1/"];
+
+[[SVHTTPClient sharedClient] GET:@"users/show.json"
+                      parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
+                      completion:^(id response, NSError *error) {
+                          followersLabel.text = [NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]];
+                      }];
+</pre> 
+
+If you would like to set those properties on individual requests, you'll need to alloc/init the request, set the attributes, and then call @start@:
 
 <pre>
 SVHTTPRequest *request = [[SVHTTPRequest alloc] initWithAddress:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
@@ -112,13 +99,6 @@ completion:^(NSObject *response) {
     });
 }];
 </pre>
-
-h2. Transition notes
-
-If you've been using SVHTTPRequest since before Dec 15, upgrading to this version will give you errors at compile time (old design sucked too bad for me to add deprecation notices). Here's what changed so you can more easily migrate to this new awesome version:
-
-* the completion block definition changed from @^(NSObject *response)@ to @^(id response, NSError *error)@
-* the basic auth signing stuff has moved from @SVHTTPRequest@ to @SVHTTPClient@.
 
 h2. Automatic Reference Counting (ARC) support
 
