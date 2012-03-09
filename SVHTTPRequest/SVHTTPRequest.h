@@ -36,6 +36,7 @@ typedef NSUInteger SVHTTPRequestMethod;
                               parameters:(NSDictionary*)parameters 
                               completion:(void (^)(id response, NSError* error))completionBlock;
 
+@property (nonatomic, retain) NSString *userAgent;
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 @property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
 

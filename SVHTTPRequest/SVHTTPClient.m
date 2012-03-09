@@ -26,12 +26,13 @@
 
 @implementation SVHTTPClient
 
-@synthesize username, password, basePath, sendParametersAsJSON, cachePolicy, operationQueue;
+@synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, operationQueue;
 
 - (void)dealloc {
     self.basePath = nil;
     self.username = nil;
     self.password = nil;
+    self.userAgent = nil;
     
     [operationQueue release];
     
@@ -130,6 +131,7 @@
     SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initWithAddress:completeURLString method:method parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     requestOperation.sendParametersAsJSON = self.sendParametersAsJSON;
     requestOperation.cachePolicy = self.cachePolicy;
+    requestOperation.userAgent = self.userAgent;
     
     if(self.username && self.password)
         [(id<SVHTTPRequestPrivateMethods>)requestOperation signRequestWithUsername:self.username password:self.password];
