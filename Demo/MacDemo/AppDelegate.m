@@ -1,32 +1,33 @@
 //
-//  DemoViewController.m
-//  Demo
+//  AppDelegate.m
+//  MacDemo
 //
-//  Created by Sam Vermette on 20.09.11.
-//  Copyright 2011 samvermette.com. All rights reserved.
+//  Created by Sam Vermette on 09.03.12.
+//  Copyright (c) 2012 Home. All rights reserved.
 //
 
-#import "DemoViewController.h"
+#import "AppDelegate.h"
+
 #import "SVHTTPRequest.h"
 
-@implementation DemoViewController
+@implementation AppDelegate
 
+@synthesize window = _window;
 
-- (IBAction)watchersRequest {
+- (IBAction)watchersRequest:(id)sender {
     
-    watchersLabel.text = nil;
-    
+    [watchersLabel setStringValue:@""];
+
     [SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
             parameters:nil
             completion:^(id response, NSError *error) {
-                watchersLabel.text = [NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
+                [watchersLabel setStringValue:[NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]]];
             }];
 }
 
-- (IBAction)twitterRequest {
+- (IBAction)twitterRequest:(id)sender {
     
-    twitterImageView.image = nil;
-    followersLabel.text = nil;
+    [followersLabel setStringValue:@""];
     
     [[SVHTTPClient sharedClient] setBasePath:@"http://api.twitter.com/1/"];
     
@@ -36,30 +37,29 @@
                                       @"original", @"size",
                                       nil]
                           completion:^(id response, NSError *error) {
-                              twitterImageView.image = [UIImage imageWithData:response];
+                              imageCell.image = [[[NSImage alloc] initWithData:response] autorelease]; 
                           }];
     
     [[SVHTTPClient sharedClient] GET:@"users/show.json"
                           parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
                           completion:^(id response, NSError *error) {
-                              followersLabel.text = [NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]];
+                              [followersLabel setStringValue:[NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]]];
                           }];
 }
 
-- (IBAction)progressRequest {
+- (IBAction)progressRequest:(id)sender {
     
-    progressLabel.text = nil;
+    [progressLabel setStringValue:@""];
     
     [SVHTTPRequest GET:@"http://sanjosetransit.com/extras/SJTransit_Icons.zip" 
             parameters:nil 
             saveToPath:@"/Volumes/Data/test2.zip" 
               progress:^(float progress) {
-                  progressLabel.text = [NSString stringWithFormat:@"Downloading (%.0f%%)", progress*100];
+                  [progressIndicator setDoubleValue:progress*100];
               } 
             completion:^(id response, NSError *error) {
-                progressLabel.text = @"Download complete";
+                [progressLabel setStringValue:@"Download complete"];
             }];
 }
-
 
 @end

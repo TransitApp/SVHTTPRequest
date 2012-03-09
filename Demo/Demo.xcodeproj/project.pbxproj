@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		220DF2EE150A7B6800E52072 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 220DF2ED150A7B6800E52072 /* Cocoa.framework */; };
+		220DF2F8150A7B6800E52072 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 220DF2F6150A7B6800E52072 /* InfoPlist.strings */; };
+		220DF2FA150A7B6800E52072 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 220DF2F9150A7B6800E52072 /* main.m */; };
+		220DF2FE150A7B6800E52072 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 220DF2FC150A7B6800E52072 /* Credits.rtf */; };
+		220DF301150A7B6800E52072 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 220DF300150A7B6800E52072 /* AppDelegate.m */; };
+		220DF304150A7B6800E52072 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 220DF302150A7B6800E52072 /* MainMenu.xib */; };
+		220DF309150A7F9500E52072 /* SVHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 220FDF27149A65BE0021F43D /* SVHTTPClient.m */; };
+		220DF30A150A7F9800E52072 /* SVHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BF14297B0B00856491 /* SVHTTPRequest.m */; };
+		220DF30B150A7F9B00E52072 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BC14297B0B00856491 /* JSONKit.m */; };
 		220FDF28149A65BE0021F43D /* SVHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 220FDF27149A65BE0021F43D /* SVHTTPClient.m */; };
 		220FDF35149AC4880021F43D /* README.textile in Resources */ = {isa = PBXBuildFile; fileRef = 220FDF34149AC4880021F43D /* README.textile */; };
 		2253899914297AFE00856491 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2253899814297AFE00856491 /* UIKit.framework */; };
@@ -25,6 +34,19 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		220DF2EB150A7B6800E52072 /* MacDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		220DF2ED150A7B6800E52072 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		220DF2F0150A7B6800E52072 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		220DF2F1150A7B6800E52072 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		220DF2F2150A7B6800E52072 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		220DF2F5150A7B6800E52072 /* MacDemo-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MacDemo-Info.plist"; sourceTree = "<group>"; };
+		220DF2F7150A7B6800E52072 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		220DF2F9150A7B6800E52072 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		220DF2FB150A7B6800E52072 /* MacDemo-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MacDemo-Prefix.pch"; sourceTree = "<group>"; };
+		220DF2FD150A7B6800E52072 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		220DF2FF150A7B6800E52072 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		220DF300150A7B6800E52072 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		220DF303150A7B6800E52072 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		220FDF26149A65BE0021F43D /* SVHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVHTTPClient.h; sourceTree = "<group>"; };
 		220FDF27149A65BE0021F43D /* SVHTTPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVHTTPClient.m; sourceTree = "<group>"; };
 		220FDF34149AC4880021F43D /* README.textile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.textile; path = ../README.textile; sourceTree = "<group>"; };
@@ -51,6 +73,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		220DF2E8150A7B6800E52072 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				220DF2EE150A7B6800E52072 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2253899114297AFE00856491 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -64,12 +94,46 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		220DF2EF150A7B6800E52072 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				220DF2F0150A7B6800E52072 /* AppKit.framework */,
+				220DF2F1150A7B6800E52072 /* CoreData.framework */,
+				220DF2F2150A7B6800E52072 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		220DF2F3150A7B6800E52072 /* MacDemo */ = {
+			isa = PBXGroup;
+			children = (
+				220DF2FF150A7B6800E52072 /* AppDelegate.h */,
+				220DF300150A7B6800E52072 /* AppDelegate.m */,
+				220DF302150A7B6800E52072 /* MainMenu.xib */,
+				220DF2F4150A7B6800E52072 /* Supporting Files */,
+			);
+			path = MacDemo;
+			sourceTree = "<group>";
+		};
+		220DF2F4150A7B6800E52072 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				220DF2F5150A7B6800E52072 /* MacDemo-Info.plist */,
+				220DF2F6150A7B6800E52072 /* InfoPlist.strings */,
+				220DF2F9150A7B6800E52072 /* main.m */,
+				220DF2FB150A7B6800E52072 /* MacDemo-Prefix.pch */,
+				220DF2FC150A7B6800E52072 /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		2253898914297AFD00856491 = {
 			isa = PBXGroup;
 			children = (
 				220FDF34149AC4880021F43D /* README.textile */,
 				2253899E14297AFE00856491 /* Demo */,
 				225389B814297B0B00856491 /* SVHTTPRequest */,
+				220DF2F3150A7B6800E52072 /* MacDemo */,
 				2253899714297AFE00856491 /* Frameworks */,
 				2253899514297AFE00856491 /* Products */,
 			);
@@ -79,6 +143,7 @@
 			isa = PBXGroup;
 			children = (
 				2253899414297AFE00856491 /* Demo.app */,
+				220DF2EB150A7B6800E52072 /* MacDemo.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,6 +154,8 @@
 				2253899814297AFE00856491 /* UIKit.framework */,
 				2253899A14297AFE00856491 /* Foundation.framework */,
 				2253899C14297AFE00856491 /* CoreGraphics.framework */,
+				220DF2ED150A7B6800E52072 /* Cocoa.framework */,
+				220DF2EF150A7B6800E52072 /* Other Frameworks */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -145,6 +212,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		220DF2EA150A7B6800E52072 /* MacDemo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 220DF307150A7B6800E52072 /* Build configuration list for PBXNativeTarget "MacDemo" */;
+			buildPhases = (
+				220DF2E7150A7B6800E52072 /* Sources */,
+				220DF2E8150A7B6800E52072 /* Frameworks */,
+				220DF2E9150A7B6800E52072 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MacDemo;
+			productName = MacDemo;
+			productReference = 220DF2EB150A7B6800E52072 /* MacDemo.app */;
+			productType = "com.apple.product-type.application";
+		};
 		2253899314297AFE00856491 /* Demo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 225389B514297AFE00856491 /* Build configuration list for PBXNativeTarget "Demo" */;
@@ -183,11 +267,22 @@
 			projectRoot = "";
 			targets = (
 				2253899314297AFE00856491 /* Demo */,
+				220DF2EA150A7B6800E52072 /* MacDemo */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		220DF2E9150A7B6800E52072 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				220DF2F8150A7B6800E52072 /* InfoPlist.strings in Resources */,
+				220DF2FE150A7B6800E52072 /* Credits.rtf in Resources */,
+				220DF304150A7B6800E52072 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2253899214297AFE00856491 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -204,6 +299,18 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		220DF2E7150A7B6800E52072 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				220DF2FA150A7B6800E52072 /* main.m in Sources */,
+				220DF301150A7B6800E52072 /* AppDelegate.m in Sources */,
+				220DF309150A7F9500E52072 /* SVHTTPClient.m in Sources */,
+				220DF30A150A7F9800E52072 /* SVHTTPRequest.m in Sources */,
+				220DF30B150A7F9B00E52072 /* JSONKit.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2253899014297AFE00856491 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -220,6 +327,30 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		220DF2F6150A7B6800E52072 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				220DF2F7150A7B6800E52072 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		220DF2FC150A7B6800E52072 /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				220DF2FD150A7B6800E52072 /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		220DF302150A7B6800E52072 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				220DF303150A7B6800E52072 /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
 		225389A114297AFE00856491 /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -247,6 +378,52 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		220DF305150A7B6800E52072 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Developer/Library/Frameworks\"",
+				);
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "MacDemo/MacDemo-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				INFOPLIST_FILE = "MacDemo/MacDemo-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		220DF306150A7B6800E52072 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Developer/Library/Frameworks\"",
+				);
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "MacDemo/MacDemo-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				INFOPLIST_FILE = "MacDemo/MacDemo-Info.plist";
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
 		225389B314297AFE00856491 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -315,6 +492,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		220DF307150A7B6800E52072 /* Build configuration list for PBXNativeTarget "MacDemo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				220DF305150A7B6800E52072 /* Debug */,
+				220DF306150A7B6800E52072 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		2253898E14297AFD00856491 /* Build configuration list for PBXProject "Demo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

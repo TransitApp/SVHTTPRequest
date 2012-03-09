@@ -1,15 +1,14 @@
-__If you're upgrading from an earlier version of SVHTTPRequest, please see the transition notes at the bottom of this document.__
-
 h1. SVHTTPRequest
 
-SVHTTPRequest is a simple and extremely straightforward way to communicate with RESTful web APIs. It's a simpler and cleaner alternative to bulky "ASIHTTPRequest":https://github.com/pokeb/asi-http-request/tree, "AFNetworking":https://github.com/AFNetworking/AFNetworking and "RESTKit":https://github.com/RestKit/RestKit. It is blocked-based, uses @NSURLConnection@ as well as @NSJSONSerialization@ (if available, otherwise "JSONKit":https://github.com/johnezang/JSONKit - included in package) to automatically parse JSON responses.
+SVHTTPRequest is a simple and extremely straightforward way to communicate with RESTful web APIs for iOS and Mac. It's a simpler and cleaner alternative to bulky "ASIHTTPRequest":https://github.com/pokeb/asi-http-request/tree, "AFNetworking":https://github.com/AFNetworking/AFNetworking and "RESTKit":https://github.com/RestKit/RestKit. It is blocked-based, uses @NSURLConnection@ as well as @NSJSONSerialization@ (if available, otherwise "JSONKit":https://github.com/johnezang/JSONKit - included in package) to automatically parse JSON responses.
 
 **SVHTTPRequest features:**
 
-* straightforward singleton convenience methods for making GET, POST, PUT, DELETE and download requests.
+* straightforward singleton convenience methods for making @GET@, @POST@, @PUT@, @DELETE@ and download requests.
 * completion block handler returning @response@ (@NSObject@ if JSON, otherwise @NSData@) and @error@.
 * persistent @basePath@ and basic authentication signing when using @SVHTTPClient@.
 * support for @multipart/form-data@ parameters in POST and PUT requests.
+* talks with the network activity indicator (iOS only).
 
 h2. Installation
 
