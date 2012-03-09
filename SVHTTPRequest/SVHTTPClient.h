@@ -13,10 +13,7 @@
 
 + (SVHTTPClient*)sharedClient;
 
-- (void)setBasePath:(NSString*)path;
 - (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
-- (void)setSendParametersAsJSON:(BOOL)encode;
-- (void)setCachePolicy:(NSURLRequestCachePolicy)cachePolicy;
 
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))completionBlock;
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSError *error))completionBlock;
@@ -27,5 +24,12 @@
 
 - (void)cancelRequestsWithPath:(NSString*)path;
 - (void)cancelAllRequests;
+
+@property (nonatomic, retain) NSString *username;
+@property (nonatomic, retain) NSString *password;
+@property (nonatomic, retain) NSString *basePath;
+
+@property (nonatomic, readwrite) BOOL sendParametersAsJSON;
+@property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
 
 @end

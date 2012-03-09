@@ -12,12 +12,6 @@
 
 @interface SVHTTPClient ()
 
-@property (nonatomic, retain) NSString *basePath;
-@property (nonatomic, retain) NSString *username;
-@property (nonatomic, retain) NSString *password;
-@property (nonatomic, readwrite) BOOL sendParametersAsJSON;
-@property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
-
 @property (nonatomic, assign) NSOperationQueue *operationQueue;
 
 - (void)queueRequest:(NSString*)path 
