@@ -255,7 +255,7 @@ typedef NSUInteger SVHTTPRequestState;
         [self addParametersToRequest:self.operationParameters];
     
     if(self.userAgent)
-        [self.operationRequest setValue:userAgent forHTTPHeaderField:@"USER_AGENT"];
+        [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
     
     [self willChangeValueForKey:@"isExecuting"];
     self.state = SVHTTPRequestStateExecuting;    
