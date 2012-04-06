@@ -180,14 +180,14 @@ typedef NSUInteger SVHTTPRequestState;
                 exit(0);
             }
             
-            NSString *dataBoundaryString = [NSString stringWithString:@"SVHTTPRequestBoundary"];
+            NSString *dataBoundaryString = @"SVHTTPRequestBoundary";
             NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", dataBoundaryString];
             [self.operationRequest addValue:contentType forHTTPHeaderField: @"Content-Type"];
             
             NSMutableData *data = [NSMutableData data];
             [data appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n", dataBoundaryString] dataUsingEncoding:NSUTF8StringEncoding]];
             [data appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"userfile\"\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
-            [data appendData:[[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+            [data appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
             [data appendData:[NSData dataWithData:obj]];
             [data appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n", dataBoundaryString] dataUsingEncoding:NSUTF8StringEncoding]];
             [dataParameters addObject:data];
