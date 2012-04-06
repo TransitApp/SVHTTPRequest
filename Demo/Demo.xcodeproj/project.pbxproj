@@ -15,7 +15,7 @@
 		220DF304150A7B6800E52072 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 220DF302150A7B6800E52072 /* MainMenu.xib */; };
 		220DF309150A7F9500E52072 /* SVHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 220FDF27149A65BE0021F43D /* SVHTTPClient.m */; };
 		220DF30A150A7F9800E52072 /* SVHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BF14297B0B00856491 /* SVHTTPRequest.m */; };
-		220DF30B150A7F9B00E52072 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BC14297B0B00856491 /* JSONKit.m */; };
+		220DF30B150A7F9B00E52072 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BC14297B0B00856491 /* JSONKit.m */; settings = {COMPILER_FLAGS = "-w"; }; };
 		220FDF28149A65BE0021F43D /* SVHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 220FDF27149A65BE0021F43D /* SVHTTPClient.m */; };
 		220FDF35149AC4880021F43D /* README.textile in Resources */ = {isa = PBXBuildFile; fileRef = 220FDF34149AC4880021F43D /* README.textile */; };
 		2253899914297AFE00856491 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2253899814297AFE00856491 /* UIKit.framework */; };
@@ -28,7 +28,7 @@
 		225389AF14297AFE00856491 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389AE14297AFE00856491 /* DemoViewController.m */; };
 		225389B214297AFE00856491 /* DemoViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 225389B014297AFE00856491 /* DemoViewController.xib */; };
 		225389C014297B0B00856491 /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = 225389BA14297B0B00856491 /* CHANGELOG.md */; };
-		225389C114297B0B00856491 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BC14297B0B00856491 /* JSONKit.m */; };
+		225389C114297B0B00856491 /* JSONKit.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BC14297B0B00856491 /* JSONKit.m */; settings = {COMPILER_FLAGS = "-w"; }; };
 		225389C214297B0B00856491 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 225389BD14297B0B00856491 /* README.md */; };
 		225389C314297B0B00856491 /* SVHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BF14297B0B00856491 /* SVHTTPRequest.m */; };
 /* End PBXBuildFile section */
@@ -252,7 +252,7 @@
 		2253898B14297AFD00856491 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0420;
+				LastUpgradeCheck = 0440;
 			};
 			buildConfigurationList = 2253898E14297AFD00856491 /* Build configuration list for PBXProject "Demo" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -472,6 +472,7 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Demo/Demo-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "Demo/Demo-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -483,6 +484,7 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Demo/Demo-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = "Demo/Demo-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -499,6 +501,7 @@
 				220DF306150A7B6800E52072 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2253898E14297AFD00856491 /* Build configuration list for PBXProject "Demo" */ = {
 			isa = XCConfigurationList;

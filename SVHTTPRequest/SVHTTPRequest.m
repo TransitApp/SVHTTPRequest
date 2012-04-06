@@ -37,6 +37,7 @@ typedef NSUInteger SVHTTPRequestState;
 @property (nonatomic, retain) NSDictionary *operationParameters;
 
 @property (nonatomic, retain) NSString *operationSavePath;
+@property (nonatomic, assign) dispatch_group_t saveDataDispatchGroup;
 @property (nonatomic, copy) void (^operationCompletionBlock)(id response, NSError *error);
 @property (nonatomic, copy) void (^operationProgressBlock)(float progress);
 
@@ -65,9 +66,9 @@ typedef NSUInteger SVHTTPRequestState;
 // private properties
 @synthesize operationRequest, operationData, operationConnection, operationParameters, operationFileHandle, state;
 @synthesize operationSavePath, operationCompletionBlock, operationProgressBlock, timeoutTimer;
-@synthesize expectedContentLength, receivedContentLength;
+@synthesize expectedContentLength, receivedContentLength, saveDataDispatchGroup;
 @synthesize requestPath, userAgent;
-	
+
 - (void)dealloc {
     [operationData release];
     [operationRequest release];
@@ -82,6 +83,8 @@ typedef NSUInteger SVHTTPRequestState;
     self.timeoutTimer = nil;
     self.requestPath = nil;
     self.userAgent = nil;
+    
+    dispatch_release(saveDataDispatchGroup);
     
 	[super dealloc];
 }
@@ -136,7 +139,8 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationProgressBlock = progressBlock;
     self.operationSavePath = savePath;
     self.operationParameters = parameters;
-
+    self.saveDataDispatchGroup = dispatch_group_create();
+    
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
     [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
     
@@ -150,7 +154,7 @@ typedef NSUInteger SVHTTPRequestState;
         [self.operationRequest setHTTPMethod:@"DELETE"];
     
     self.state = SVHTTPRequestStateReady;
-
+    
     return self;
 }
 
@@ -180,14 +184,14 @@ typedef NSUInteger SVHTTPRequestState;
                 exit(0);
             }
             
-            NSString *dataBoundaryString = [NSString stringWithString:@"SVHTTPRequestBoundary"];
+            NSString *dataBoundaryString = @"SVHTTPRequestBoundary";
             NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", dataBoundaryString];
             [self.operationRequest addValue:contentType forHTTPHeaderField: @"Content-Type"];
             
             NSMutableData *data = [NSMutableData data];
             [data appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n", dataBoundaryString] dataUsingEncoding:NSUTF8StringEncoding]];
             [data appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"userfile\"\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
-            [data appendData:[[NSString stringWithString:@"Content-Type: application/octet-stream\r\n\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+            [data appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
             [data appendData:[NSData dataWithData:obj]];
             [data appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n", dataBoundaryString] dataUsingEncoding:NSUTF8StringEncoding]];
             [dataParameters addObject:data];
@@ -327,10 +331,20 @@ typedef NSUInteger SVHTTPRequestState;
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    if(self.operationSavePath)
-        [self.operationFileHandle writeData:data];
-    else
-        [self.operationData appendData:data];
+    dispatch_group_async(self.saveDataDispatchGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        if(self.operationSavePath) {
+            @try { //writeData: can throw exception when there's no disk space. Give an error, don't crash
+                [self.operationFileHandle writeData:data];
+            }
+            @catch (NSException *exception) {
+                [self.operationConnection cancel];
+                NSError *writeError = [NSError errorWithDomain:@"SVHTTPRequestWriteError" code:0 userInfo:exception.userInfo];
+                [self callCompletionBlockWithResponse:nil error:writeError];
+            }
+        }
+        else
+            [self.operationData appendData:data];
+    });
     
     if(self.operationProgressBlock) {
         //If its -1 that means the header does not have the content size value
@@ -347,6 +361,8 @@ typedef NSUInteger SVHTTPRequestState;
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     id response = nil;
     NSError *JSONError = nil;
+    
+    dispatch_group_wait(self.saveDataDispatchGroup, DISPATCH_TIME_FOREVER);
     
     if(self.operationData && self.operationData.length > 0) {
         response = [NSData dataWithData:self.operationData];
@@ -392,10 +408,10 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (NSString*)encodedURLParameterString {
     NSString *result = (NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                           (CFStringRef)self,
-                                                                           NULL,
-                                                                           CFSTR(":/=,!$&'()*+;[]@#?"),
-                                                                           kCFStringEncodingUTF8);
+                                                                          (CFStringRef)self,
+                                                                          NULL,
+                                                                          CFSTR(":/=,!$&'()*+;[]@#?"),
+                                                                          kCFStringEncodingUTF8);
 	return [result autorelease];
 }
 
