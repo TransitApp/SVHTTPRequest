@@ -359,28 +359,24 @@ typedef NSUInteger SVHTTPRequestState;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^(void) {
-        dispatch_group_wait(self.saveDataDispatchGroup, DISPATCH_TIME_FOREVER); //Wait for all the writes to be completed
-        
-        dispatch_async(dispatch_get_main_queue(), ^(void) {
-            id response = nil;
-            NSError *JSONError = nil;
-            if(self.operationData && self.operationData.length > 0) {
-                response = [NSData dataWithData:self.operationData];
-                NSDictionary *jsonObject;
-                
-                // try to parse JSON. If image or XML, will return raw NSData object
-                if([NSJSONSerialization respondsToSelector:@selector(class)])
-                    jsonObject = [NSJSONSerialization JSONObjectWithData:response options:0 error:&JSONError];
-                else
-                    jsonObject = [response objectFromJSONDataWithParseOptions:0 error:&JSONError];
-                
-                if(jsonObject)
-                    response = jsonObject;
-            }
+    dispatch_group_notify(self.saveDataDispatchGroup, dispatch_get_main_queue(), ^{
+        id response = nil;
+        NSError *JSONError = nil;
+        if(self.operationData && self.operationData.length > 0) {
+            response = [NSData dataWithData:self.operationData];
+            NSDictionary *jsonObject;
             
-            [self callCompletionBlockWithResponse:response error:JSONError];
-        });
+            // try to parse JSON. If image or XML, will return raw NSData object
+            if([NSJSONSerialization respondsToSelector:@selector(class)])
+                jsonObject = [NSJSONSerialization JSONObjectWithData:response options:0 error:&JSONError];
+            else
+                jsonObject = [response objectFromJSONDataWithParseOptions:0 error:&JSONError];
+            
+            if(jsonObject)
+                response = jsonObject;
+        }
+        
+        [self callCompletionBlockWithResponse:response error:JSONError];
     });
 }
 
