@@ -332,18 +332,20 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
     dispatch_group_async(self.saveDataDispatchGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        if(self.operationSavePath) {
-            @try { //writeData: can throw exception when there's no disk space. Give an error, don't crash
-                [self.operationFileHandle writeData:data];
+        @synchronized (self) {
+            if(self.operationSavePath) {
+                @try { //writeData: can throw exception when there's no disk space. Give an error, don't crash
+                    [self.operationFileHandle writeData:data];
+                }
+                @catch (NSException *exception) {
+                    [self.operationConnection cancel];
+                    NSError *writeError = [NSError errorWithDomain:@"SVHTTPRequestWriteError" code:0 userInfo:exception.userInfo];
+                    [self callCompletionBlockWithResponse:nil error:writeError];
+                }
             }
-            @catch (NSException *exception) {
-                [self.operationConnection cancel];
-                NSError *writeError = [NSError errorWithDomain:@"SVHTTPRequestWriteError" code:0 userInfo:exception.userInfo];
-                [self callCompletionBlockWithResponse:nil error:writeError];
-            }
+            else
+                [self.operationData appendData:data];  
         }
-        else
-            [self.operationData appendData:data];
     });
     
     if(self.operationProgressBlock) {
