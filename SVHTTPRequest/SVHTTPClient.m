@@ -12,7 +12,7 @@
 
 @interface SVHTTPClient ()
 
-@property (nonatomic, assign) NSOperationQueue *operationQueue;
+@property (nonatomic, strong) NSOperationQueue *operationQueue;
 
 - (void)queueRequest:(NSString*)path 
               method:(SVHTTPRequestMethod)method 
@@ -28,16 +28,6 @@
 
 @synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, operationQueue;
 
-- (void)dealloc {
-    self.basePath = nil;
-    self.username = nil;
-    self.password = nil;
-    self.userAgent = nil;
-    
-    [operationQueue release];
-    
-	[super dealloc];
-}
 
 + (SVHTTPClient*)sharedClient {
 	
@@ -59,26 +49,18 @@
 
 #pragma mark - Setters
 
-- (void)setBasePath:(NSString *)newBasePath {
-    
-    if(basePath)
-        [basePath release], basePath = nil;
-    
-    if(newBasePath)
-        basePath = [newBasePath retain];
-}
 
 - (void)setBasicAuthWithUsername:(NSString *)newUsername password:(NSString *)newPassword {
     
     if(username)
-        [username release], username = nil;
+        username = nil;
     
     if(password)
-        [password release], password = nil;
+        password = nil;
     
     if(newUsername && newPassword) {
-        username = [newUsername retain];
-        password = [newPassword retain];
+        username = newUsername;
+        password = newPassword;
     }
 }
 
@@ -138,7 +120,6 @@
     
     [(id<SVHTTPRequestPrivateMethods>)requestOperation setRequestPath:path];
     [self.operationQueue addOperation:requestOperation];
-    [requestOperation release];
 }
 
 @end

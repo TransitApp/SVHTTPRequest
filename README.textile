@@ -1,6 +1,8 @@
+__Note: SVHTTPRequest now uses Automatic Reference Counting (ARC) and uses solely NSJSONSerialization to parse the JSON responses (it's therefore only compatible with iOS 5 and Mac OS X Lion). Find the last MRC (also uses JSONKit so it's compatible with iOS 4) commit on the "master-mrc":https://github.com/samvermette/SVHTTPRequest/tree/master-mrc branch.__
+
 h1. SVHTTPRequest
 
-SVHTTPRequest is a simple and extremely straightforward way to communicate with RESTful web APIs for iOS and Mac. It's a simpler and cleaner alternative to bulky "ASIHTTPRequest":https://github.com/pokeb/asi-http-request/tree, "AFNetworking":https://github.com/AFNetworking/AFNetworking and "RESTKit":https://github.com/RestKit/RestKit. It is blocked-based, uses @NSURLConnection@ as well as @NSJSONSerialization@ (if available, otherwise "JSONKit":https://github.com/johnezang/JSONKit - included in package) to automatically parse JSON responses.
+SVHTTPRequest is a simple and extremely straightforward way to communicate with RESTful web APIs for iOS and Mac. It's a simpler and cleaner alternative to bulky "ASIHTTPRequest":https://github.com/pokeb/asi-http-request/tree, "AFNetworking":https://github.com/AFNetworking/AFNetworking and "RESTKit":https://github.com/RestKit/RestKit. It is blocked-based, uses @NSURLConnection@, ARC, as well as @NSJSONSerialization@ to automatically parse JSON responses (making it only compatible with iOS 5 and Mac OS X Lion).
 
 **SVHTTPRequest features:**
 
@@ -99,10 +101,6 @@ completion:^(NSObject *response) {
     });
 }];
 </pre>
-
-h2. Automatic Reference Counting (ARC) support
-
-Maintaining an official ARC branch has proven to be too much work, often leading to confusion since the ARC branch is always a few commits behind. If you'd like to use SVHTTPRequest in your ARC-enabled project, you'll have to "add the @-fno-objc-arc@ compiler flag":http://stackoverflow.com/questions/6646052/how-can-i-disable-arc-for-a-single-file-in-a-project to all of SVHTTPRequest's files.
 
 h2. Credits
 

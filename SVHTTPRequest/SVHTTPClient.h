@@ -25,10 +25,10 @@
 - (void)cancelRequestsWithPath:(NSString*)path;
 - (void)cancelAllRequests;
 
-@property (nonatomic, retain) NSString *username;
-@property (nonatomic, retain) NSString *password;
-@property (nonatomic, retain) NSString *basePath;
-@property (nonatomic, retain) NSString *userAgent;
+@property (nonatomic, strong) NSString *username;
+@property (nonatomic, strong) NSString *password;
+@property (nonatomic, strong) NSString *basePath;
+@property (nonatomic, strong) NSString *userAgent;
 
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 @property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
