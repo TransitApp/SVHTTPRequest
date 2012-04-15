@@ -36,6 +36,7 @@ typedef NSUInteger SVHTTPRequestState;
 @property (nonatomic, strong) NSDictionary *operationParameters;
 
 @property (nonatomic, strong) NSString *operationSavePath;
+@property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
 @property (nonatomic, assign) dispatch_group_t saveDataDispatchGroup;
 @property (nonatomic, copy) void (^operationCompletionBlock)(id response, NSError *error);
 @property (nonatomic, copy) void (^operationProgressBlock)(float progress);
@@ -65,12 +66,13 @@ typedef NSUInteger SVHTTPRequestState;
 // private properties
 @synthesize operationRequest, operationData, operationConnection, operationParameters, operationFileHandle, state;
 @synthesize operationSavePath, operationCompletionBlock, operationProgressBlock, timeoutTimer;
-@synthesize expectedContentLength, receivedContentLength, saveDataDispatchGroup;
+@synthesize expectedContentLength, receivedContentLength, saveDataDispatchGroup, saveDataDispatchQueue;
 @synthesize requestPath, userAgent;
 
 - (void)dealloc {
     [operationConnection cancel];
     dispatch_release(saveDataDispatchGroup);
+    dispatch_release(saveDataDispatchQueue);
 }
 
 #pragma mark - Convenience Methods
@@ -124,8 +126,9 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationSavePath = savePath;
     self.operationParameters = parameters;
     self.saveDataDispatchGroup = dispatch_group_create();
+    self.saveDataDispatchQueue = dispatch_queue_create("com.samvermette.SVHTTPRequest", DISPATCH_QUEUE_SERIAL);
     
-    self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]]; 
+    self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
     [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
     
     if(method == SVHTTPRequestMethodGET)
@@ -320,21 +323,19 @@ typedef NSUInteger SVHTTPRequestState;
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    dispatch_group_async(self.saveDataDispatchGroup, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
-        @synchronized (self) {
-            if(self.operationSavePath) {
-                @try { //writeData: can throw exception when there's no disk space. Give an error, don't crash
-                    [self.operationFileHandle writeData:data];
-                }
-                @catch (NSException *exception) {
-                    [self.operationConnection cancel];
-                    NSError *writeError = [NSError errorWithDomain:@"SVHTTPRequestWriteError" code:0 userInfo:exception.userInfo];
-                    [self callCompletionBlockWithResponse:nil error:writeError];
-                }
+    dispatch_group_async(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
+        if(self.operationSavePath) {
+            @try { //writeData: can throw exception when there's no disk space. Give an error, don't crash
+                [self.operationFileHandle writeData:data];
             }
-            else
-                [self.operationData appendData:data];  
+            @catch (NSException *exception) {
+                [self.operationConnection cancel];
+                NSError *writeError = [NSError errorWithDomain:@"SVHTTPRequestWriteError" code:0 userInfo:exception.userInfo];
+                [self callCompletionBlockWithResponse:nil error:writeError];
+            }
         }
+        else
+            [self.operationData appendData:data];
     });
     
     if(self.operationProgressBlock) {
@@ -392,10 +393,10 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (NSString*)encodedURLParameterString {
     NSString *result = (__bridge_transfer NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                          (__bridge CFStringRef)self,
-                                                                          NULL,
-                                                                          CFSTR(":/=,!$&'()*+;[]@#?"),
-                                                                          kCFStringEncodingUTF8);
+                                                                                            (__bridge CFStringRef)self,
+                                                                                            NULL,
+                                                                                            CFSTR(":/=,!$&'()*+;[]@#?"),
+                                                                                            kCFStringEncodingUTF8);
 	return result;
 }
 
