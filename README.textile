@@ -90,6 +90,10 @@ SVHTTPRequest *request = [SVHTTPRequest GET:@"http://api.twitter.com/1/users/sho
 
 If you're using SVHTTPClient, you can do that by calling @cancelRequestsWithPath:@ or @cancelAllRequests@.
 
+h3. Disabling logging
+
+By default, SVHTTPRequest will log messages to the console every time a request is made. You can disable this by adding the compiler flag @-DSVHTTPREQUEST_DISABLE_LOGGING@ to SVHTTPRequest.m in Target Settings > Build Phases.
+
 h2. Under the hood
 
 All SVHTTPRequest requests are made asynchronously using NSURLConnection's built-in asynchronous methods. The completion block, however, is executed on the main thread. You should dispatch it to a separate thread/queue if it's resource intensive enough that it hogs the main thread. This can be done easily using "Grand Central Dispatch":http://developer.apple.com/library/mac/#documentation/Performance/Reference/GCD_libdispatch_Ref/Reference/reference.html:

@@ -274,7 +274,9 @@ typedef NSUInteger SVHTTPRequestState;
     
     [self.operationConnection start];
     
+#if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
+#endif
 }
 
 // private method; not part of NSOperation
