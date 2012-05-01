@@ -24,17 +24,17 @@ typedef NSUInteger SVHTTPRequestMethod;
 
 @interface SVHTTPRequest : NSOperation
 
-+ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
-+ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSError *error))completionBlock;
++ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
++ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
 
-+ (SVHTTPRequest*)POST:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
-+ (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
-+ (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSError *error))block;
++ (SVHTTPRequest*)POST:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
++ (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
++ (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
 
 - (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
                                   method:(SVHTTPRequestMethod)method 
                               parameters:(NSDictionary*)parameters 
-                              completion:(void (^)(id response, NSError* error))completionBlock;
+                              completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError* error))completionBlock;
 
 @property (nonatomic, strong) NSString *userAgent;
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
@@ -54,7 +54,7 @@ typedef NSUInteger SVHTTPRequestMethod;
                               parameters:(NSDictionary*)parameters 
                               saveToPath:(NSString*)savePath
                                 progress:(void (^)(float))progressBlock
-                              completion:(void (^)(id, NSError*))completionBlock;
+                              completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock;
 
 - (void)signRequestWithUsername:(NSString*)username password:(NSString*)password;
 
