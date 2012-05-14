@@ -29,7 +29,7 @@
 @synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, operationQueue;
 
 
-+ (SVHTTPClient*)sharedClient {
++ (id)sharedClient {
 	
     static SVHTTPClient *_sharedInstance = nil;
     static dispatch_once_t oncePredicate;

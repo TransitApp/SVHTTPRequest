@@ -11,7 +11,7 @@
 
 @interface SVHTTPClient : NSObject
 
-+ (SVHTTPClient*)sharedClient;
++ (id)sharedClient;
 
 - (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
 
