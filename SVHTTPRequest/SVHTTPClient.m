@@ -21,12 +21,14 @@
             progress:(void (^)(float))progressBlock
           completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock;
 
+@property (nonatomic, strong) NSMutableDictionary *HTTPHeaderFields;
+
 @end
 
 
 @implementation SVHTTPClient
 
-@synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, operationQueue;
+@synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, operationQueue, HTTPHeaderFields;
 
 
 + (id)sharedClient {
@@ -106,6 +108,16 @@
 
 #pragma mark -
 
+- (void)addValue:(id)value forHTTPHeaderField:(NSString *)field
+{
+    if (self.HTTPHeaderFields == nil)
+    {
+        self.HTTPHeaderFields = [NSMutableDictionary new];
+    }
+    
+    [self.HTTPHeaderFields setValue:value forKey:field];
+}
+
 - (void)queueRequest:(NSString*)path 
               method:(SVHTTPRequestMethod)method 
           parameters:(NSDictionary*)parameters 
@@ -118,6 +130,10 @@
     requestOperation.sendParametersAsJSON = self.sendParametersAsJSON;
     requestOperation.cachePolicy = self.cachePolicy;
     requestOperation.userAgent = self.userAgent;
+    
+    [self.HTTPHeaderFields enumerateKeysAndObjectsUsingBlock:^(NSString *field, id value, BOOL *stop) {
+        [(id<SVHTTPRequestPrivateMethods>)requestOperation addValue:value forHTTPHeaderField:field];
+    }];
     
     if(self.username && self.password)
         [(id<SVHTTPRequestPrivateMethods>)requestOperation signRequestWithUsername:self.username password:self.password];

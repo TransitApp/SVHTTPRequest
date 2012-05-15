@@ -27,6 +27,9 @@
 - (void)cancelRequestsWithPath:(NSString*)path;
 - (void)cancelAllRequests;
 
+// header values common to all requests, e.g. API keys
+- (void)addValue:(id)value forHTTPHeaderField:(NSString *)field;
+
 @property (nonatomic, strong) NSString *username;
 @property (nonatomic, strong) NSString *password;
 @property (nonatomic, strong) NSString *basePath;
