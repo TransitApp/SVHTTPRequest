@@ -20,7 +20,7 @@
 
     [SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
             parameters:nil
-            completion:^(id response, NSError *error) {
+            completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
                 [watchersLabel setStringValue:[NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]]];
             }];
 }
@@ -36,13 +36,13 @@
                                       @"samvermette", @"screen_name",
                                       @"original", @"size",
                                       nil]
-                          completion:^(id response, NSError *error) {
+                          completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
                               imageCell.image = [[[NSImage alloc] initWithData:response] autorelease]; 
                           }];
     
     [[SVHTTPClient sharedClient] GET:@"users/show.json"
                           parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
-                          completion:^(id response, NSError *error) {
+                          completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
                               [followersLabel setStringValue:[NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]]];
                           }];
 }
@@ -57,7 +57,7 @@
               progress:^(float progress) {
                   [progressIndicator setDoubleValue:progress*100];
               } 
-            completion:^(id response, NSError *error) {
+            completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
                 [progressLabel setStringValue:@"Download complete"];
             }];
 }
