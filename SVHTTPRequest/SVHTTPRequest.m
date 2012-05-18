@@ -74,6 +74,9 @@ typedef NSUInteger SVHTTPRequestState;
     [operationConnection cancel];
     dispatch_release(saveDataDispatchGroup);
     dispatch_release(saveDataDispatchQueue);
+#if TARGET_OS_MAC && !TARGET_OS_IPHONE && !TARGET_OS_EMBEDDED && !TARGET_IPHONE_SIMULATOR
+    [super dealloc];
+#endif
 }
 
 #pragma mark - Convenience Methods
