@@ -11,6 +11,15 @@
 
 @implementation DemoViewController
 
+- (void)viewDidLoad {
+    
+    [SVHTTPRequest HEAD:@"https://api.github.com/repos/samvermette/SVHTTPRequest" 
+             parameters:nil 
+             completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
+                 NSString *tag = [urlResponse.allHeaderFields objectForKey:@"ETag"]; 
+                 NSLog(@"ETag for SVHTTPRequest: %@", [tag stringByTrimmingCharactersInSet:[NSCharacterSet punctuationCharacterSet]]);
+             }];
+}
 
 - (IBAction)watchersRequest {
     
