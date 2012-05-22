@@ -116,6 +116,12 @@ typedef NSUInteger SVHTTPRequestState;
     return requestObject;
 }
 
++ (SVHTTPRequest*)HEAD:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse *, NSError *))block {
+    SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodHEAD parameters:parameters saveToPath:nil progress:nil completion:block];
+    [requestObject start];
+    
+    return requestObject;
+}
 
 #pragma mark -
 
@@ -143,7 +149,8 @@ typedef NSUInteger SVHTTPRequestState;
         [self.operationRequest setHTTPMethod:@"PUT"];
     else if(method == SVHTTPRequestMethodDELETE)
         [self.operationRequest setHTTPMethod:@"DELETE"];
-    
+    else if(method == SVHTTPRequestMethodHEAD)
+        [self.operationRequest setHTTPMethod:@"HEAD"];
     self.state = SVHTTPRequestStateReady;
     
     return self;
@@ -191,7 +198,7 @@ typedef NSUInteger SVHTTPRequestState;
     
     NSString *parameterString = [stringParameters componentsJoinedByString:@"&"];
     
-    if([method isEqualToString:@"GET"]) {
+    if([method isEqualToString:@"GET"] || [method isEqualToString:@"HEAD"]) {
         NSString *baseAddress = self.operationRequest.URL.absoluteString;
         baseAddress = [baseAddress stringByAppendingFormat:@"?%@", [stringParameters componentsJoinedByString:@"&"]];
         [self.operationRequest setURL:[NSURL URLWithString:baseAddress]];
