@@ -86,6 +86,10 @@
     [self queueRequest:path method:SVHTTPRequestMethodDELETE parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
+- (void)HEAD:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock {
+    [self queueRequest:path method:SVHTTPRequestMethodHEAD parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
+}
+
 #pragma mark - Operation Cancelling
 
 - (void)cancelRequestsWithPath:(NSString *)path {

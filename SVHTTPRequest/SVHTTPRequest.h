@@ -16,7 +16,8 @@ enum {
 	SVHTTPRequestMethodGET = 0,
     SVHTTPRequestMethodPOST,
     SVHTTPRequestMethodPUT,
-    SVHTTPRequestMethodDELETE
+    SVHTTPRequestMethodDELETE,
+    SVHTTPRequestMethodHEAD
 };
 
 typedef NSUInteger SVHTTPRequestMethod;
@@ -30,6 +31,8 @@ typedef NSUInteger SVHTTPRequestMethod;
 + (SVHTTPRequest*)POST:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
+
++ (SVHTTPRequest*)HEAD:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
 
 - (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
                                   method:(SVHTTPRequestMethod)method 
