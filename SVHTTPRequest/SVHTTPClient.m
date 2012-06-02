@@ -108,13 +108,26 @@
 
 #pragma mark -
 
-- (void)addValue:(id)value forHTTPHeaderField:(NSString *)field
+- (NSMutableDictionary *)HTTPHeaderFields
 {
-    if (self.HTTPHeaderFields == nil)
+    if (HTTPHeaderFields == nil)
     {
-        self.HTTPHeaderFields = [NSMutableDictionary new];
+        HTTPHeaderFields = [NSMutableDictionary new];
     }
     
+    return HTTPHeaderFields;
+}
+
+- (void)addValue:(NSString *)addedValue forHTTPHeaderField:(NSString *)field
+{
+    NSParameterAssert([addedValue isKindOfClass:[NSString class]]);
+    NSString *value = [self.HTTPHeaderFields valueForKey:field];
+    NSString *appendedValue = [value stringByAppendingFormat:@", %@", addedValue];
+    [self.HTTPHeaderFields setValue:appendedValue forKey:field];
+}
+
+- (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field
+{
     [self.HTTPHeaderFields setValue:value forKey:field];
 }
 
@@ -131,8 +144,8 @@
     requestOperation.cachePolicy = self.cachePolicy;
     requestOperation.userAgent = self.userAgent;
     
-    [self.HTTPHeaderFields enumerateKeysAndObjectsUsingBlock:^(NSString *field, id value, BOOL *stop) {
-        [(id<SVHTTPRequestPrivateMethods>)requestOperation addValue:value forHTTPHeaderField:field];
+    [self.HTTPHeaderFields enumerateKeysAndObjectsUsingBlock:^(NSString *field, NSString *value, BOOL *stop) {
+        [(id<SVHTTPRequestPrivateMethods>)requestOperation setValue:value forHTTPHeaderField:field];
     }];
     
     if(self.username && self.password)

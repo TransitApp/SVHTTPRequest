@@ -35,9 +35,9 @@ typedef NSUInteger SVHTTPRequestMethod;
 + (SVHTTPRequest*)HEAD:(NSString*)address parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))block;
 
 - (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
-                                  method:(SVHTTPRequestMethod)method 
-                              parameters:(NSDictionary*)parameters 
-                              completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError* error))completionBlock;
+                           method:(SVHTTPRequestMethod)method 
+                       parameters:(NSDictionary*)parameters 
+                       completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError* error))completionBlock;
 
 @property (nonatomic, strong) NSString *userAgent;
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
@@ -53,14 +53,14 @@ typedef NSUInteger SVHTTPRequestMethod;
 @property (nonatomic, strong) NSString *requestPath;
 
 - (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
-                                  method:(SVHTTPRequestMethod)method 
-                              parameters:(NSDictionary*)parameters 
-                              saveToPath:(NSString*)savePath
-                                progress:(void (^)(float))progressBlock
-                              completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock;
+                           method:(SVHTTPRequestMethod)method 
+                       parameters:(NSDictionary*)parameters 
+                       saveToPath:(NSString*)savePath
+                         progress:(void (^)(float))progressBlock
+                       completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock;
 
 - (void)signRequestWithUsername:(NSString*)username password:(NSString*)password;
 
-- (void)addValue:(id)value forHTTPHeaderField:(NSString *)field;
+- (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 
 @end

@@ -231,9 +231,14 @@ typedef NSUInteger SVHTTPRequestState;
     [self.operationRequest setValue:authValue forHTTPHeaderField:@"Authorization"];
 }
 
-- (void)addValue:(id)value forHTTPHeaderField:(NSString *)field
+- (void)addValue:(NSString *)value forHTTPHeaderField:(NSString *)field
 {
     [self.operationRequest addValue:value forHTTPHeaderField:field];
+}
+
+- (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field
+{
+    [self.operationRequest setValue:value forHTTPHeaderField:field];
 }
 
 - (void)setTimeoutTimer:(NSTimer *)newTimer {
