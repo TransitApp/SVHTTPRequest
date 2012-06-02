@@ -43,10 +43,41 @@
     return _sharedInstance;
 }
 
-- (id)init {
-    self = [super init];
-    self.operationQueue = [[NSOperationQueue alloc] init];
+- (id)init
+{
+    if (self = [super init])
+    {
+        self.operationQueue = [[NSOperationQueue alloc] init];
+        
+        [self.operationQueue addObserver:self
+                              forKeyPath:@"operationCount"
+                                 options:NSKeyValueObservingOptionNew
+                                 context:&self->operationQueue];
+    }
+    
     return self;
+}
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ([keyPath isEqualToString:@"operationCount"])
+    {
+#if TARGET_OS_IPHONE
+        dispatch_async(dispatch_get_main_queue(), ^{
+            BOOL indicatorVisible = self.operationQueue.operationCount > 0;
+            [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:indicatorVisible];
+        });
+#endif
+    }
+    else
+    {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
+    }
+}
+
+- (void)dealloc
+{
+    [self.operationQueue removeObserver:self forKeyPath:@"operationCount" context:&self->operationQueue];
 }
 
 #pragma mark - Setters
