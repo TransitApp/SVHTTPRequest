@@ -141,6 +141,9 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
     [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
     
+    // pipeline all but POST
+    self.operationRequest.HTTPShouldUsePipelining = (method != SVHTTPRequestMethodPOST);
+    
     if(method == SVHTTPRequestMethodGET)
         [self.operationRequest setHTTPMethod:@"GET"];
     else if(method == SVHTTPRequestMethodPOST)
