@@ -379,7 +379,7 @@ typedef NSUInteger SVHTTPRequestState;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    dispatch_group_notify(self.saveDataDispatchGroup, dispatch_get_main_queue(), ^{
+    dispatch_group_notify(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
         id response = nil;
         NSError *JSONError = nil;
         if(self.operationData && self.operationData.length > 0) {
@@ -401,14 +401,16 @@ typedef NSUInteger SVHTTPRequestState;
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     self.timeoutTimer = nil;
     
-#if TARGET_OS_IPHONE
-    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-#endif
-    
-    if(self.operationCompletionBlock && !self.isCancelled)
-        self.operationCompletionBlock(response, self.operationURLResponse, error);
-    
-    [self finish];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        #if TARGET_OS_IPHONE
+        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+        #endif
+        
+        if(self.operationCompletionBlock && !self.isCancelled)
+            self.operationCompletionBlock(response, self.operationURLResponse, error);
+        
+        [self finish];
+    });
 }
 
 @end
