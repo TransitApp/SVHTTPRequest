@@ -15,10 +15,10 @@
     
     watchersLabel.text = nil;
     
-    [SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
+    [SVHTTPRequest GET:@"https://api.github.com/repos/samvermette/SVHTTPRequest"
             parameters:nil
             completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
-                watchersLabel.text = [NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]];
+                watchersLabel.text = [NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [response valueForKey:@"watchers"]];
             }];
 }
 
