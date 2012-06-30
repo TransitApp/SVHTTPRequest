@@ -322,6 +322,20 @@ typedef NSUInteger SVHTTPRequestState;
     return self.state == SVHTTPRequestStateExecuting;
 }
 
+- (SVHTTPRequestState)state {
+    @synchronized(self) {
+        return state;
+    }
+}
+
+- (void)setState:(SVHTTPRequestState)newState {
+    @synchronized(self) {
+        [self willChangeValueForKey:@"state"];
+        state = newState;
+        [self didChangeValueForKey:@"state"];
+    }
+}
+
 #pragma mark -
 #pragma mark Delegate Methods
 
