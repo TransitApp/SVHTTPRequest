@@ -9,7 +9,7 @@
 
 #import "SVHTTPRequest.h"
 
-#define kSVHTTPRequestTimeoutInterval 240
+#define kSVHTTPRequestTimeoutInterval 20
 
 @interface NSData (Base64)
 - (NSString*)base64EncodingWithLineLength:(unsigned int)lineLength;
