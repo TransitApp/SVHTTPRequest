@@ -268,6 +268,9 @@ typedef NSUInteger SVHTTPRequestState;
     
     if(self.userAgent)
         [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
+
+    if (self.sendParametersAsJSON)
+        [self.operationRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     
     [self willChangeValueForKey:@"isExecuting"];
     self.state = SVHTTPRequestStateExecuting;    
