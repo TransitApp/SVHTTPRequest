@@ -43,10 +43,8 @@
     return _sharedInstance;
 }
 
-- (id)init
-{
-    if (self = [super init])
-    {
+- (id)init {
+    if (self = [super init]) {
         self.operationQueue = [[NSOperationQueue alloc] init];
         
         [self.operationQueue addObserver:self
@@ -58,10 +56,8 @@
     return self;
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
-{
-    if ([keyPath isEqualToString:@"operationCount"])
-    {
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+    if ([keyPath isEqualToString:@"operationCount"]) {
 #if TARGET_OS_IPHONE
         dispatch_async(dispatch_get_main_queue(), ^{
             BOOL indicatorVisible = self.operationQueue.operationCount > 0;
@@ -70,9 +66,7 @@
 #endif
     }
     else
-    {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
-    }
 }
 
 - (void)dealloc
