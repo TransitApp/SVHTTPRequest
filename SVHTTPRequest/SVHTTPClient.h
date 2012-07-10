@@ -28,7 +28,6 @@
 - (void)cancelAllRequests;
 
 // header values common to all requests, e.g. API keys
-- (void)addValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 
 @property (nonatomic, strong) NSString *username;

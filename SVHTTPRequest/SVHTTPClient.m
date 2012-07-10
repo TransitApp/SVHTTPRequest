@@ -139,26 +139,14 @@
 
 #pragma mark -
 
-- (NSMutableDictionary *)HTTPHeaderFields
-{
-    if (HTTPHeaderFields == nil)
-    {
+- (NSMutableDictionary *)HTTPHeaderFields {
+    if(HTTPHeaderFields == nil)
         HTTPHeaderFields = [NSMutableDictionary new];
-    }
     
     return HTTPHeaderFields;
 }
 
-- (void)addValue:(NSString *)addedValue forHTTPHeaderField:(NSString *)field
-{
-    NSParameterAssert([addedValue isKindOfClass:[NSString class]]);
-    NSString *value = [self.HTTPHeaderFields valueForKey:field];
-    NSString *appendedValue = [value stringByAppendingFormat:@", %@", addedValue];
-    [self.HTTPHeaderFields setValue:appendedValue forKey:field];
-}
-
-- (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field
-{
+- (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field {
     [self.HTTPHeaderFields setValue:value forKey:field];
 }
 
