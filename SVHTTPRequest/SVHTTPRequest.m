@@ -162,68 +162,82 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (void)addParametersToRequest:(NSDictionary*)paramsDict {
     
-    NSUInteger parameterCount = [[paramsDict allKeys] count];
-    
-    NSMutableArray *stringParameters = [NSMutableArray arrayWithCapacity:parameterCount];
-    NSMutableArray *dataParameters = [NSMutableArray arrayWithCapacity:parameterCount];
     NSString *method = self.operationRequest.HTTPMethod;
     
-    [paramsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        
+    if([method isEqualToString:@"POST"] || [method isEqualToString:@"PUT"]) {
+        if(self.sendParametersAsJSON) {
+            [self.operationRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+            NSError *jsonError;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:paramsDict options:0 error:&jsonError];
+            
+            if(jsonData && jsonError)
+                [NSException raise:NSInvalidArgumentException format:@"Request parameters couldn't be serialized into JSON."];
+            
+            [self.operationRequest setHTTPBody:jsonData];
+        } else {
+            __block BOOL hasData = NO;
+            
+            [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+                if([obj isKindOfClass:[NSData class]])
+                    hasData = YES;
+                else if(![obj isKindOfClass:[NSString class]] || [obj isKindOfClass:[NSNumber class]])
+                    [NSException raise:NSInvalidArgumentException format:@"%@ requests only accept NSString and NSNumber parameters.", self.operationRequest.HTTPMethod];
+            }];
+            
+            if(!hasData) {
+                const char *stringData = [[self parameterStringForDictionary:paramsDict] UTF8String];
+                NSMutableData *postData = [NSMutableData dataWithBytes:stringData length:strlen(stringData)];
+                [self.operationRequest setHTTPBody:postData];
+            }
+            else {
+                NSString *boundary = @"SVHTTPRequestBoundary";
+                NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", boundary];
+                [self.operationRequest setValue:contentType forHTTPHeaderField: @"Content-Type"];
+                
+                __block NSMutableData *postData = [NSMutableData data];
+                
+                // add string parameters
+                [paramsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+                    if(![obj isKindOfClass:[NSData class]]) {
+                        [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [postData appendData:[[NSString stringWithFormat:@"%@", obj] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+                    } else {
+                        [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"userfile\"\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [postData appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+                        [postData appendData:obj];
+                        [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+                    }
+                }];
+                
+                [postData appendData:[[NSString stringWithFormat:@"--%@--\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+                [self.operationRequest setHTTPBody:postData];
+            }
+        }
+    } else {
+         NSString *baseAddress = self.operationRequest.URL.absoluteString;
+         baseAddress = [baseAddress stringByAppendingFormat:@"?%@", [self parameterStringForDictionary:paramsDict]];
+         [self.operationRequest setURL:[NSURL URLWithString:baseAddress]];
+    }
+}
+
+- (NSString*)parameterStringForDictionary:(NSDictionary*)parameters {
+    NSMutableArray *stringParameters = [NSMutableArray arrayWithCapacity:parameters.count];
+    
+    [parameters enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         if([obj isKindOfClass:[NSString class]]) {
-            NSString *cleanParameter = [obj encodedURLParameterString];
-            [stringParameters addObject:[NSString stringWithFormat:@"%@=%@", key, cleanParameter]];
-        } 
-        
+            [stringParameters addObject:[NSString stringWithFormat:@"%@=%@", key, [obj encodedURLParameterString]]];
+        }
         else if([obj isKindOfClass:[NSNumber class]]) {
             [stringParameters addObject:[NSString stringWithFormat:@"%@=%@", key, obj]];
-        } 
-        
-        else if([obj isKindOfClass:[NSData class]]) {
-            if(![method isEqualToString:@"POST"] && ![method isEqualToString:@"PUT"]) {
-                NSLog(@"**SVHTTPRequest: You can only send multipart/form-data over a POST and PUT requests.");
-                exit(0);
-            }
-            
-            NSString *dataBoundaryString = @"SVHTTPRequestBoundary";
-            NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", dataBoundaryString];
-            [self.operationRequest addValue:contentType forHTTPHeaderField: @"Content-Type"];
-            
-            NSMutableData *data = [NSMutableData data];
-            [data appendData:[[NSString stringWithFormat:@"\r\n--%@\r\n", dataBoundaryString] dataUsingEncoding:NSUTF8StringEncoding]];
-            [data appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"userfile\"\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
-            [data appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
-            [data appendData:[NSData dataWithData:obj]];
-            [data appendData:[[NSString stringWithFormat:@"\r\n--%@--\r\n", dataBoundaryString] dataUsingEncoding:NSUTF8StringEncoding]];
-            [dataParameters addObject:data];
         }
+        else
+            [NSException raise:NSInvalidArgumentException format:@"%@ requests only accept NSString, NSNumber and NSData parameters.", self.operationRequest.HTTPMethod];
     }];
     
-    NSString *parameterString = [stringParameters componentsJoinedByString:@"&"];
-    
-    if([method isEqualToString:@"GET"] || [method isEqualToString:@"HEAD"]) {
-        NSString *baseAddress = self.operationRequest.URL.absoluteString;
-        baseAddress = [baseAddress stringByAppendingFormat:@"?%@", [stringParameters componentsJoinedByString:@"&"]];
-        [self.operationRequest setURL:[NSURL URLWithString:baseAddress]];
-    }
-    else if(self.sendParametersAsJSON) {
-        NSError *jsonError;
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:paramsDict options:0 error:&jsonError];
-        
-        if(jsonData && jsonError)
-            [NSException raise:NSInvalidArgumentException format:@"Request parameters couldn't be serialized into JSON."];
-        
-        [self.operationRequest setHTTPBody:jsonData];
-    }
-    else {
-        const char *stringData = [parameterString UTF8String];
-        NSMutableData *postData = [NSMutableData dataWithBytes:stringData length:strlen(stringData)];
-        
-        for(NSData *fileData in dataParameters)
-            [postData appendData:fileData];
-        
-        [self.operationRequest setHTTPBody:postData];
-    }
+    return [stringParameters componentsJoinedByString:@"&"];
 }
 
 
@@ -267,9 +281,6 @@ typedef NSUInteger SVHTTPRequestState;
     
     if(self.userAgent)
         [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
-
-    if (self.sendParametersAsJSON)
-        [self.operationRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     
     [self willChangeValueForKey:@"isExecuting"];
     self.state = SVHTTPRequestStateExecuting;    
