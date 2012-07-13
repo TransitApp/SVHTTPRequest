@@ -180,7 +180,7 @@ typedef NSUInteger SVHTTPRequestState;
             [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
                 if([obj isKindOfClass:[NSData class]])
                     hasData = YES;
-                else if(![obj isKindOfClass:[NSString class]] || [obj isKindOfClass:[NSNumber class]])
+                else if(![obj isKindOfClass:[NSString class]] && ![obj isKindOfClass:[NSNumber class]])
                     [NSException raise:NSInvalidArgumentException format:@"%@ requests only accept NSString and NSNumber parameters.", self.operationRequest.HTTPMethod];
             }];
             
