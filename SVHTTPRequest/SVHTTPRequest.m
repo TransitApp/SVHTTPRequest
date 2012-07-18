@@ -427,6 +427,17 @@ typedef NSUInteger SVHTTPRequestState;
     self.timeoutTimer = nil;
 
     dispatch_async(dispatch_get_main_queue(), ^{
+        NSError *error;
+        
+        if(!error && self.operationURLResponse.statusCode == 500) {
+            error = [NSError errorWithDomain:NSURLErrorDomain
+                                        code:NSURLErrorBadServerResponse
+                                    userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
+                                              @"Bad Server Response.", NSLocalizedDescriptionKey,
+                                              self.operationRequest.URL, NSURLErrorFailingURLErrorKey,
+                                              self.operationRequest.URL.absoluteString, NSURLErrorFailingURLStringErrorKey, nil]];
+        }
+        
         if(self.operationCompletionBlock && !self.isCancelled)
             self.operationCompletionBlock(response, self.operationURLResponse, error);
         
