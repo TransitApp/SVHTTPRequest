@@ -439,7 +439,7 @@ typedef NSUInteger SVHTTPRequestState;
         }
         
         if(self.operationCompletionBlock && !self.isCancelled)
-            self.operationCompletionBlock(response, self.operationURLResponse, error);
+            self.operationCompletionBlock(response, self.operationURLResponse, serverError);
         
         [self finish];
     });
