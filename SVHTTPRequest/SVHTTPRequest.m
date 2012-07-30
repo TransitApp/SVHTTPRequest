@@ -405,17 +405,25 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     dispatch_group_notify(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-        id response = nil;
-        NSError *JSONError = nil;
-        if(self.operationData && self.operationData.length > 0) {
-            response = [NSData dataWithData:self.operationData];
-            NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:response options:0 error:&JSONError];
-            
-            if(jsonObject)
-                response = jsonObject;
+
+        id response = [NSData dataWithData:self.operationData];
+        NSError *error = nil;
+        
+        if ([[operationURLResponse MIMEType] hasPrefix:@"image/"]) {
+            response = [UIImage imageWithData:self.operationData];
+        }
+
+        if ([[operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
+            if(self.operationData && self.operationData.length > 0) {
+                response = [NSData dataWithData:self.operationData];
+                NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:response options:NSJSONReadingAllowFragments error:&error];
+                
+                if(jsonObject)
+                    response = jsonObject;
+            }
         }
         
-        [self callCompletionBlockWithResponse:response error:JSONError];
+        [self callCompletionBlockWithResponse:response error:error];
     });
 }
 
