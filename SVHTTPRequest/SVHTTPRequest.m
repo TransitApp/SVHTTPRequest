@@ -408,10 +408,6 @@ typedef NSUInteger SVHTTPRequestState;
 
         id response = [NSData dataWithData:self.operationData];
         NSError *error = nil;
-        
-        if ([[operationURLResponse MIMEType] hasPrefix:@"image/"]) {
-            response = [UIImage imageWithData:self.operationData];
-        }
 
         if ([[operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
             if(self.operationData && self.operationData.length > 0) {
