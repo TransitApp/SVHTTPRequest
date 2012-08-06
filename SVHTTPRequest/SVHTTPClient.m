@@ -28,7 +28,7 @@
 
 @implementation SVHTTPClient
 
-@synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, operationQueue, HTTPHeaderFields;
+@synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, operationQueue, HTTPHeaderFields, activeRequestCount;
 
 
 + (id)sharedClient {
@@ -47,20 +47,20 @@
     if (self = [super init]) {
         self.operationQueue = [[NSOperationQueue alloc] init];
         
-        [self.operationQueue addObserver:self
-                              forKeyPath:@"operationCount"
-                                 options:NSKeyValueObservingOptionNew
-                                 context:&self->operationQueue];
+        [self addObserver:self
+               forKeyPath:@"activeRequestCount"
+                  options:NSKeyValueObservingOptionNew
+                  context:nil];
     }
     
     return self;
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
-    if ([keyPath isEqualToString:@"operationCount"]) {
+    if ([keyPath isEqualToString:@"activeRequestCount"]) {
 #if TARGET_OS_IPHONE
         dispatch_async(dispatch_get_main_queue(), ^{
-            BOOL indicatorVisible = self.operationQueue.operationCount > 0;
+            BOOL indicatorVisible = activeRequestCount > 0;
             [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:indicatorVisible];
         });
 #endif
@@ -69,9 +69,8 @@
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
 }
 
-- (void)dealloc
-{
-    [self.operationQueue removeObserver:self forKeyPath:@"operationCount" context:&self->operationQueue];
+- (void)dealloc {
+    [self removeObserver:self forKeyPath:@"activeRequestCount" context:nil];
 }
 
 #pragma mark - Setters
@@ -156,6 +155,8 @@
     requestOperation.sendParametersAsJSON = self.sendParametersAsJSON;
     requestOperation.cachePolicy = self.cachePolicy;
     requestOperation.userAgent = self.userAgent;
+    
+    [(id<SVHTTPRequestPrivateMethods>)requestOperation setClient:self];
     
     [self.HTTPHeaderFields enumerateKeysAndObjectsUsingBlock:^(NSString *field, NSString *value, BOOL *stop) {
         [(id<SVHTTPRequestPrivateMethods>)requestOperation setValue:value forHTTPHeaderField:field];

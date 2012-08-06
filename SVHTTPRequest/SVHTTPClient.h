@@ -37,5 +37,6 @@
 
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 @property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
+@property (nonatomic, readwrite) NSUInteger activeRequestCount;
 
 @end

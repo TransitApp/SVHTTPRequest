@@ -51,6 +51,7 @@ typedef NSUInteger SVHTTPRequestMethod;
 @protocol SVHTTPRequestPrivateMethods <NSObject>
 
 @property (nonatomic, strong) NSString *requestPath;
+@property (nonatomic, strong) SVHTTPClient *client;
 
 - (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
                            method:(SVHTTPRequestMethod)method 
@@ -60,7 +61,6 @@ typedef NSUInteger SVHTTPRequestMethod;
                        completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock;
 
 - (void)signRequestWithUsername:(NSString*)username password:(NSString*)password;
-
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 
 @end

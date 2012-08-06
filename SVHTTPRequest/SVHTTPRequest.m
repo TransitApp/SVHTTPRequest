@@ -44,6 +44,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 @property (nonatomic, readwrite) SVHTTPRequestState state;
 @property (nonatomic, strong) NSString *requestPath;
+@property (nonatomic, strong) SVHTTPClient *client;
 
 @property (nonatomic, strong) NSTimer *timeoutTimer; // see http://stackoverflow.com/questions/2736967
 
@@ -68,7 +69,7 @@ typedef NSUInteger SVHTTPRequestState;
 @synthesize operationRequest, operationData, operationConnection, operationParameters, operationURLResponse, operationFileHandle, state;
 @synthesize operationSavePath, operationCompletionBlock, operationProgressBlock, timeoutTimer;
 @synthesize expectedContentLength, receivedContentLength, saveDataDispatchGroup, saveDataDispatchQueue;
-@synthesize requestPath, userAgent;
+@synthesize requestPath, userAgent, client;
 
 - (void)dealloc {
     [operationConnection cancel];
@@ -301,6 +302,7 @@ typedef NSUInteger SVHTTPRequestState;
         [self.operationConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
     
     [self.operationConnection start];
+    self.client.activeRequestCount++;
     
 #if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
@@ -425,7 +427,8 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     self.timeoutTimer = nil;
-
+    self.client.activeRequestCount--;
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         NSError *serverError = error;
         
