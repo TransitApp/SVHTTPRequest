@@ -28,7 +28,8 @@
 
 @implementation SVHTTPClient
 
-@synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, operationQueue, HTTPHeaderFields, activeRequestCount;
+@synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, timeoutInterval;
+@synthesize operationQueue, HTTPHeaderFields, activeRequestCount;
 
 
 + (id)sharedClient {

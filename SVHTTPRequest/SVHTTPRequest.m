@@ -63,7 +63,7 @@ typedef NSUInteger SVHTTPRequestState;
 @implementation SVHTTPRequest
 
 // public properties
-@synthesize sendParametersAsJSON, cachePolicy;
+@synthesize sendParametersAsJSON, cachePolicy, timeoutInterval;
 
 // private properties
 @synthesize operationRequest, operationData, operationConnection, operationParameters, operationURLResponse, operationFileHandle, state;
@@ -136,11 +136,12 @@ typedef NSUInteger SVHTTPRequestState;
     self.operationProgressBlock = progressBlock;
     self.operationSavePath = savePath;
     self.operationParameters = parameters;
+    self.timeoutInterval = kSVHTTPRequestTimeoutInterval;
+    
     self.saveDataDispatchGroup = dispatch_group_create();
     self.saveDataDispatchQueue = dispatch_queue_create("com.samvermette.SVHTTPRequest", DISPATCH_QUEUE_SERIAL);
     
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
-    [self.operationRequest setTimeoutInterval:kSVHTTPRequestTimeoutInterval];
     
     // pipeline all but POST and downloads
     if(method != SVHTTPRequestMethodPOST && !savePath)
@@ -283,6 +284,8 @@ typedef NSUInteger SVHTTPRequestState;
     
     if(self.userAgent)
         [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
+    
+    [self.operationRequest setTimeoutInterval:self.timeoutInterval];
     
     [self willChangeValueForKey:@"isExecuting"];
     self.state = SVHTTPRequestStateExecuting;    
