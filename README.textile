@@ -43,6 +43,8 @@ If most of your requests are made to the same API endpoint, you should instead u
                       }];
 </pre> 
 
+You can have mutiple SVHTTPClient instances using the @sharedClientWithIdentifier:@ method.
+
 If you would like to set those properties on individual requests, you'll need to alloc/init the request, set the attributes, and then call @start@:
 
 <pre>

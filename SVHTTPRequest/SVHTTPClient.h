@@ -12,8 +12,7 @@
 @interface SVHTTPClient : NSObject
 
 + (id)sharedClient;
-
-- (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
++ (id)sharedClientWithIdentifier:(NSString*)identifier;
 
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
@@ -23,6 +22,8 @@
 - (void)DELETE:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
 
 - (void)HEAD:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
+
+- (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
 
 - (void)cancelRequestsWithPath:(NSString*)path;
 - (void)cancelAllRequests;

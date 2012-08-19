@@ -33,15 +33,25 @@
 
 
 + (id)sharedClient {
-	
-    static SVHTTPClient *_sharedInstance = nil;
+    return [SVHTTPClient sharedClientWithIdentifier:@"master"];
+}
+
++ (id)sharedClientWithIdentifier:(NSString *)identifier {
+    SVHTTPClient *sharedClient = [[self sharedClients] objectForKey:identifier];
+    
+    if(!sharedClient) {
+        sharedClient = [[SVHTTPClient alloc] init];
+        [[self sharedClients] setObject:sharedClient forKey:identifier];
+    }
+    
+    return sharedClient;
+}
+
++ (id)sharedClients {
+    static NSMutableDictionary *_sharedClients = nil;
     static dispatch_once_t oncePredicate;
-    
-    dispatch_once(&oncePredicate, ^{
-        _sharedInstance = [[self alloc] init];
-    });
-    
-    return _sharedInstance;
+    dispatch_once(&oncePredicate, ^{ _sharedClients = [[NSMutableDictionary alloc] init]; });
+    return _sharedClients;
 }
 
 - (id)init {
