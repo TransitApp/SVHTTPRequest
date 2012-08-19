@@ -14,6 +14,8 @@
 + (SVHTTPClient*)sharedClient;
 + (SVHTTPClient*)sharedClientWithIdentifier:(NSString*)identifier;
 
+- (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
+
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
 
@@ -23,13 +25,12 @@
 
 - (void)HEAD:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
 
-- (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
-
 - (void)cancelRequestsWithPath:(NSString*)path;
 - (void)cancelAllRequests;
 
 // header values common to all requests, e.g. API keys
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
+@property (nonatomic, strong) NSDictionary *baseParameters;
 
 @property (nonatomic, strong) NSString *username;
 @property (nonatomic, strong) NSString *password;

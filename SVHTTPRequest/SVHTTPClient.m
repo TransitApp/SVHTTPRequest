@@ -28,7 +28,7 @@
 
 @implementation SVHTTPClient
 
-@synthesize username, password, basePath, userAgent, sendParametersAsJSON, cachePolicy, timeoutInterval;
+@synthesize username, password, basePath, baseParameters, userAgent, sendParametersAsJSON, cachePolicy, timeoutInterval;
 @synthesize operationQueue, HTTPHeaderFields, activeRequestCount;
 
 
@@ -162,7 +162,12 @@
           completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock  {
     
     NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath, path];
-    SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initWithAddress:completeURLString method:method parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
+    
+    NSMutableDictionary *mergedParameters = [NSMutableDictionary dictionary];
+    [mergedParameters addEntriesFromDictionary:parameters];
+    [mergedParameters addEntriesFromDictionary:self.baseParameters];
+    
+    SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initWithAddress:completeURLString method:method parameters:mergedParameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     requestOperation.sendParametersAsJSON = self.sendParametersAsJSON;
     requestOperation.cachePolicy = self.cachePolicy;
     requestOperation.userAgent = self.userAgent;
