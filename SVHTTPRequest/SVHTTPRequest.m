@@ -296,7 +296,7 @@ typedef NSUInteger SVHTTPRequestState;
         self.operationFileHandle = [NSFileHandle fileHandleForWritingAtPath:self.operationSavePath];
     } else {
         self.operationData = [[NSMutableData alloc] init];
-        self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kSVHTTPRequestTimeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
+        self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:self.timeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
     }
     
     [self.operationRequest setCachePolicy:self.cachePolicy];

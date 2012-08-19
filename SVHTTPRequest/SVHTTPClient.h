@@ -11,8 +11,8 @@
 
 @interface SVHTTPClient : NSObject
 
-+ (id)sharedClient;
-+ (id)sharedClientWithIdentifier:(NSString*)identifier;
++ (SVHTTPClient*)sharedClient;
++ (SVHTTPClient*)sharedClientWithIdentifier:(NSString*)identifier;
 
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
 - (void)GET:(NSString*)path parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(void (^)(id response, NSHTTPURLResponse *urlResponse, NSError *error))completionBlock;
