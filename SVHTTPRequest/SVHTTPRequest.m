@@ -237,9 +237,10 @@ static NSUInteger taskCount = 0;
             }
         }
     } else {
-         NSString *baseAddress = self.operationRequest.URL.absoluteString;
-         baseAddress = [baseAddress stringByAppendingFormat:@"?%@", [self parameterStringForDictionary:paramsDict]];
-         [self.operationRequest setURL:[NSURL URLWithString:baseAddress]];
+        NSString *baseAddress = self.operationRequest.URL.absoluteString;
+        if(paramsDict.count > 0)
+            baseAddress = [baseAddress stringByAppendingFormat:@"?%@", [self parameterStringForDictionary:paramsDict]];
+        [self.operationRequest setURL:[NSURL URLWithString:baseAddress]];
     }
 }
 
