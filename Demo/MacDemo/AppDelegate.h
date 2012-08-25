@@ -14,7 +14,7 @@
     IBOutlet NSProgressIndicator *progressIndicator;
 }
 
-@property (assign) IBOutlet NSWindow *window;
+@property (weak) IBOutlet NSWindow *window;
 
 - (IBAction)watchersRequest:(id)sender;
 - (IBAction)twitterRequest:(id)sender;

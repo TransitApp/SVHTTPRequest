@@ -18,10 +18,10 @@
     
     [watchersLabel setStringValue:@""];
 
-    [SVHTTPRequest GET:@"http://github.com/api/v2/json/repos/show/samvermette/SVHTTPRequest"
+    [SVHTTPRequest GET:@"https://api.github.com/repos/samvermette/SVHTTPRequest"
             parameters:nil
             completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
-                [watchersLabel setStringValue:[NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [[response valueForKey:@"repository"] valueForKey:@"watchers"]]];
+                [watchersLabel setStringValue:[NSString stringWithFormat:@"SVHTTPRequest has %@ watchers", [response valueForKey:@"watchers"]]];
             }];
 }
 
@@ -37,7 +37,7 @@
                                       @"original", @"size",
                                       nil]
                           completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
-                              imageCell.image = [[[NSImage alloc] initWithData:response] autorelease]; 
+                              imageCell.image = [[NSImage alloc] initWithData:response]; 
                           }];
     
     [[SVHTTPClient sharedClient] GET:@"users/show.json"
