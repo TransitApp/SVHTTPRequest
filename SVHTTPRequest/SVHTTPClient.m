@@ -29,7 +29,7 @@
 @implementation SVHTTPClient
 
 @synthesize username, password, basePath, baseParameters, userAgent, sendParametersAsJSON, cachePolicy, timeoutInterval;
-@synthesize operationQueue, HTTPHeaderFields, activeRequestCount;
+@synthesize operationQueue, HTTPHeaderFields;
 
 
 + (id)sharedClient {
@@ -57,32 +57,11 @@
 - (id)init {
     if (self = [super init]) {
         self.operationQueue = [[NSOperationQueue alloc] init];
-        
-        [self addObserver:self
-               forKeyPath:@"activeRequestCount"
-                  options:NSKeyValueObservingOptionNew
-                  context:nil];
     }
     
     return self;
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
-    if ([keyPath isEqualToString:@"activeRequestCount"]) {
-#if TARGET_OS_IPHONE
-        dispatch_async(dispatch_get_main_queue(), ^{
-            BOOL indicatorVisible = activeRequestCount > 0;
-            [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:indicatorVisible];
-        });
-#endif
-    }
-    else
-        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
-}
-
-- (void)dealloc {
-    [self removeObserver:self forKeyPath:@"activeRequestCount" context:nil];
-}
 
 #pragma mark - Setters
 

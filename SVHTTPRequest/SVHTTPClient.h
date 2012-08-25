@@ -41,7 +41,6 @@ typedef void (^SVHTTPRequestCompletionHandler)(id response, NSHTTPURLResponse *u
 
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 @property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
-@property (nonatomic, readwrite) NSUInteger activeRequestCount;
 @property (nonatomic, readwrite) NSUInteger timeoutInterval;
 
 @end

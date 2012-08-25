@@ -27,6 +27,8 @@ enum {
 
 typedef NSUInteger SVHTTPRequestState;
 
+static NSUInteger taskCount = 0;
+
 @interface SVHTTPRequest ()
 
 @property (nonatomic, strong) NSMutableURLRequest *operationRequest;
@@ -77,6 +79,24 @@ typedef NSUInteger SVHTTPRequestState;
     dispatch_release(saveDataDispatchQueue);
 #if TARGET_OS_MAC && !TARGET_OS_IPHONE && !TARGET_OS_EMBEDDED && !TARGET_IPHONE_SIMULATOR
     [super dealloc];
+#endif
+}
+
+- (void)increaseTaskCount {
+    taskCount++;
+    [self toggleNetworkActivityIndicator];
+}
+
+- (void)decreaseTaskCount {
+    taskCount--;
+    [self toggleNetworkActivityIndicator];
+}
+
+- (void)toggleNetworkActivityIndicator {
+#if TARGET_OS_IPHONE
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(taskCount > 0)];
+    });
 #endif
 }
 
@@ -306,7 +326,7 @@ typedef NSUInteger SVHTTPRequestState;
         [self.operationConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
     
     [self.operationConnection start];
-    self.client.activeRequestCount++;
+    [self increaseTaskCount];
     
 #if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
@@ -435,7 +455,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     self.timeoutTimer = nil;
-    self.client.activeRequestCount--;
+    [self decreaseTaskCount];
     
     dispatch_async(dispatch_get_main_queue(), ^{
         NSError *serverError = error;
