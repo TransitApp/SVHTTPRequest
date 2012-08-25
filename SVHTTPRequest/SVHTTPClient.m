@@ -19,7 +19,7 @@
           parameters:(NSDictionary*)parameters 
           saveToPath:(NSString*)savePath 
             progress:(void (^)(float))progressBlock
-          completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock;
+          completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 @property (nonatomic, strong) NSMutableDictionary *HTTPHeaderFields;
 
@@ -103,27 +103,27 @@
 
 #pragma mark - Request Methods
 
-- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock {
+- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
     [self queueRequest:path method:SVHTTPRequestMethodGET parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
+- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     [self queueRequest:path method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
 }
 
-- (void)POST:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock {
+- (void)POST:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
     [self queueRequest:path method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)PUT:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock {
+- (void)PUT:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
     [self queueRequest:path method:SVHTTPRequestMethodPUT parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)DELETE:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock {
+- (void)DELETE:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
     [self queueRequest:path method:SVHTTPRequestMethodDELETE parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)HEAD:(NSString *)path parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse*, NSError*))completionBlock {
+- (void)HEAD:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
     [self queueRequest:path method:SVHTTPRequestMethodHEAD parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
@@ -159,7 +159,7 @@
           parameters:(NSDictionary*)parameters 
           saveToPath:(NSString*)savePath 
             progress:(void (^)(float))progressBlock 
-          completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock  {
+          completion:(SVHTTPRequestCompletionHandler)completionBlock  {
     
     NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath, path];
     
