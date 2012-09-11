@@ -344,11 +344,13 @@ static NSUInteger taskCount = 0;
 }
 
 - (void)cancel {
-    if([self isFinished])
+    if(![self isExecuting])
         return;
     
     [super cancel];
-    [self callCompletionBlockWithResponse:nil error:nil];
+    self.timeoutTimer = nil;
+    [self decreaseTaskCount];
+    [self finish];
 }
 
 - (BOOL)isConcurrent {
