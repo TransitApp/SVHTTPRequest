@@ -121,7 +121,7 @@ static NSUInteger taskCount = 0;
 }
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
-    SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
+    SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
     [requestObject start];
     
     return requestObject;
@@ -437,7 +437,7 @@ static NSUInteger taskCount = 0;
 }
 
 - (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {    
-    if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {
+    if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {        
         self.operationProgressBlock((float)totalBytesWritten/(float)totalBytesExpectedToWrite);
     }
 }
