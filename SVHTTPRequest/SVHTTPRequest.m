@@ -9,8 +9,6 @@
 
 #import "SVHTTPRequest.h"
 
-#define kSVHTTPRequestTimeoutInterval 20
-
 @interface NSData (Base64)
 - (NSString*)base64EncodingWithLineLength:(unsigned int)lineLength;
 @end
@@ -28,6 +26,8 @@ enum {
 typedef NSUInteger SVHTTPRequestState;
 
 static NSUInteger taskCount = 0;
+static NSTimeInterval defaultTimeoutInterval = 20;
+static NSString *defaultUserAgent;
 
 @interface SVHTTPRequest ()
 
@@ -77,6 +77,14 @@ static NSUInteger taskCount = 0;
     [operationConnection cancel];
     dispatch_release(saveDataDispatchGroup);
     dispatch_release(saveDataDispatchQueue);
+}
+
++ (void)setDefaultTimeoutInterval:(NSTimeInterval)interval {
+    defaultTimeoutInterval = interval;
+}
+
++ (void)setDefaultUserAgent:(NSString *)userAgent {
+    defaultUserAgent = userAgent;
 }
 
 - (void)increaseTaskCount {
@@ -153,7 +161,7 @@ static NSUInteger taskCount = 0;
     self.operationProgressBlock = progressBlock;
     self.operationSavePath = savePath;
     self.operationParameters = parameters;
-    self.timeoutInterval = kSVHTTPRequestTimeoutInterval;
+    self.timeoutInterval = defaultTimeoutInterval;
     
     self.saveDataDispatchGroup = dispatch_group_create();
     self.saveDataDispatchQueue = dispatch_queue_create("com.samvermette.SVHTTPRequest", DISPATCH_QUEUE_SERIAL);
@@ -302,6 +310,8 @@ static NSUInteger taskCount = 0;
     
     if(self.userAgent)
         [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
+    else if(defaultUserAgent)
+        [self.operationRequest setValue:defaultUserAgent forHTTPHeaderField:@"User-Agent"];
     
     [self.operationRequest setTimeoutInterval:self.timeoutInterval];
     

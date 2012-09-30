@@ -38,6 +38,9 @@ typedef NSUInteger SVHTTPRequestMethod;
                        parameters:(NSDictionary*)parameters 
                        completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
++ (void)setDefaultTimeoutInterval:(NSTimeInterval)interval;
++ (void)setDefaultUserAgent:(NSString*)userAgent;
+
 @property (nonatomic, strong) NSString *userAgent;
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 @property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
