@@ -319,9 +319,7 @@ static NSString *defaultUserAgent;
         [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
     else if(defaultUserAgent)
         [self.operationRequest setValue:defaultUserAgent forHTTPHeaderField:@"User-Agent"];
-    
-    [self.operationRequest setTimeoutInterval:self.timeoutInterval];
-    
+        
     [self willChangeValueForKey:@"isExecuting"];
     self.state = SVHTTPRequestStateExecuting;    
     [self didChangeValueForKey:@"isExecuting"];
@@ -332,6 +330,7 @@ static NSString *defaultUserAgent;
     } else {
         self.operationData = [[NSMutableData alloc] init];
         self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:self.timeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
+        [self.operationRequest setTimeoutInterval:self.timeoutInterval];
     }
     
     [self.operationRequest setCachePolicy:self.cachePolicy];
