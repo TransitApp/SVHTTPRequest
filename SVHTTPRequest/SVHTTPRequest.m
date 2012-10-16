@@ -352,6 +352,8 @@ static NSString *defaultUserAgent;
     [self.operationConnection cancel];
     operationConnection = nil;
     
+    [self decreaseTaskCount];
+    
     [self willChangeValueForKey:@"isExecuting"];
     [self willChangeValueForKey:@"isFinished"];
     self.state = SVHTTPRequestStateFinished;    
@@ -365,7 +367,6 @@ static NSString *defaultUserAgent;
     
     [super cancel];
     self.timeoutTimer = nil;
-    [self decreaseTaskCount];
     [self finish];
 }
 
@@ -477,7 +478,6 @@ static NSString *defaultUserAgent;
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     self.timeoutTimer = nil;
-    [self decreaseTaskCount];
     
     dispatch_async(dispatch_get_main_queue(), ^{
         NSError *serverError = error;
