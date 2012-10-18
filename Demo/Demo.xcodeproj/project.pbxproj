@@ -27,6 +27,7 @@
 		225389AF14297AFE00856491 /* DemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389AE14297AFE00856491 /* DemoViewController.m */; };
 		225389B214297AFE00856491 /* DemoViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 225389B014297AFE00856491 /* DemoViewController.xib */; };
 		225389C314297B0B00856491 /* SVHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BF14297B0B00856491 /* SVHTTPRequest.m */; };
+		22A748831630AA83004893A8 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 22A748821630AA83004893A8 /* Default-568h@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +63,7 @@
 		225389B114297AFE00856491 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DemoViewController.xib; sourceTree = "<group>"; };
 		225389BE14297B0B00856491 /* SVHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVHTTPRequest.h; sourceTree = "<group>"; };
 		225389BF14297B0B00856491 /* SVHTTPRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVHTTPRequest.m; sourceTree = "<group>"; };
+		22A748821630AA83004893A8 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -122,6 +124,7 @@
 		2253898914297AFD00856491 = {
 			isa = PBXGroup;
 			children = (
+				22A748821630AA83004893A8 /* Default-568h@2x.png */,
 				220FDF34149AC4880021F43D /* README.textile */,
 				2253899E14297AFE00856491 /* Demo */,
 				225389B814297B0B00856491 /* SVHTTPRequest */,
@@ -232,7 +235,7 @@
 		2253898B14297AFD00856491 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0440;
+				LastUpgradeCheck = 0450;
 			};
 			buildConfigurationList = 2253898E14297AFD00856491 /* Build configuration list for PBXProject "Demo" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -271,6 +274,7 @@
 				225389AC14297AFE00856491 /* MainWindow.xib in Resources */,
 				225389B214297AFE00856491 /* DemoViewController.xib in Resources */,
 				220FDF35149AC4880021F43D /* README.textile in Resources */,
+				22A748831630AA83004893A8 /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,6 +363,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Developer/Library/Frameworks\"",
@@ -383,6 +388,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
