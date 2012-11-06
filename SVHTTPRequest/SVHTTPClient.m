@@ -14,12 +14,12 @@
 
 @property (nonatomic, strong) NSOperationQueue *operationQueue;
 
-- (void)queueRequest:(NSString*)path 
-              method:(SVHTTPRequestMethod)method 
-          parameters:(NSDictionary*)parameters 
-          saveToPath:(NSString*)savePath 
-            progress:(void (^)(float))progressBlock
-          completion:(SVHTTPRequestCompletionHandler)completionBlock;
+- (SVHTTPRequest*)queueRequest:(NSString*)path
+                        method:(SVHTTPRequestMethod)method
+                    parameters:(NSDictionary*)parameters
+                    saveToPath:(NSString*)savePath
+                      progress:(void (^)(float))progressBlock
+                    completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 @property (nonatomic, strong) NSMutableDictionary *HTTPHeaderFields;
 
@@ -82,32 +82,32 @@
 
 #pragma mark - Request Methods
 
-- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
-    [self queueRequest:path method:SVHTTPRequestMethodGET parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
+- (SVHTTPRequest*)GET:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
+    return [self queueRequest:path method:SVHTTPRequestMethodGET parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
-    [self queueRequest:path method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
+- (SVHTTPRequest*)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
+    return [self queueRequest:path method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
 }
 
-- (void)POST:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
-    [self queueRequest:path method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
+- (SVHTTPRequest*)POST:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
+    return [self queueRequest:path method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)POST:(NSString *)path parameters:(NSDictionary *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
-    [self queueRequest:path method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
+- (SVHTTPRequest*)POST:(NSString *)path parameters:(NSDictionary *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
+    return [self queueRequest:path method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
 }
 
-- (void)PUT:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
-    [self queueRequest:path method:SVHTTPRequestMethodPUT parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
+- (SVHTTPRequest*)PUT:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
+    return [self queueRequest:path method:SVHTTPRequestMethodPUT parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)DELETE:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
-    [self queueRequest:path method:SVHTTPRequestMethodDELETE parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
+- (SVHTTPRequest*)DELETE:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
+    return [self queueRequest:path method:SVHTTPRequestMethodDELETE parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (void)HEAD:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
-    [self queueRequest:path method:SVHTTPRequestMethodHEAD parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
+- (SVHTTPRequest*)HEAD:(NSString *)path parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock {
+    return [self queueRequest:path method:SVHTTPRequestMethodHEAD parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
 #pragma mark - Operation Cancelling
@@ -137,12 +137,12 @@
     [self.HTTPHeaderFields setValue:value forKey:field];
 }
 
-- (void)queueRequest:(NSString*)path 
-              method:(SVHTTPRequestMethod)method 
-          parameters:(NSDictionary*)parameters 
-          saveToPath:(NSString*)savePath 
-            progress:(void (^)(float))progressBlock 
-          completion:(SVHTTPRequestCompletionHandler)completionBlock  {
+- (SVHTTPRequest*)queueRequest:(NSString*)path
+                        method:(SVHTTPRequestMethod)method
+                    parameters:(NSDictionary*)parameters
+                    saveToPath:(NSString*)savePath
+                      progress:(void (^)(float))progressBlock
+                    completion:(SVHTTPRequestCompletionHandler)completionBlock  {
     
     NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath, path];
     
@@ -166,6 +166,8 @@
     
     [(id<SVHTTPRequestPrivateMethods>)requestOperation setRequestPath:path];
     [self.operationQueue addOperation:requestOperation];
+    
+    return requestOperation;
 }
 
 @end
