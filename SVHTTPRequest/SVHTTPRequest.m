@@ -39,8 +39,14 @@ static NSString *defaultUserAgent;
 @property (nonatomic, strong) NSHTTPURLResponse *operationURLResponse;
 @property (nonatomic, strong) NSString *operationSavePath;
 
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
 @property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
 @property (nonatomic, assign) dispatch_group_t saveDataDispatchGroup;
+#else
+@property (nonatomic, strong) dispatch_queue_t saveDataDispatchQueue;
+@property (nonatomic, strong) dispatch_group_t saveDataDispatchGroup;
+#endif
+
 @property (nonatomic, copy) SVHTTPRequestCompletionHandler operationCompletionBlock;
 @property (nonatomic, copy) void (^operationProgressBlock)(float progress);
 
@@ -75,8 +81,10 @@ static NSString *defaultUserAgent;
 
 - (void)dealloc {
     [operationConnection cancel];
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
     dispatch_release(saveDataDispatchGroup);
     dispatch_release(saveDataDispatchQueue);
+#endif
 }
 
 + (void)setDefaultTimeoutInterval:(NSTimeInterval)interval {
