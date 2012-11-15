@@ -33,14 +33,14 @@
 
 
 + (id)sharedClient {
-    return [SVHTTPClient sharedClientWithIdentifier:@"master"];
+    return [self sharedClientWithIdentifier:@"master"];
 }
 
 + (id)sharedClientWithIdentifier:(NSString *)identifier {
     SVHTTPClient *sharedClient = [[self sharedClients] objectForKey:identifier];
     
     if(!sharedClient) {
-        sharedClient = [[SVHTTPClient alloc] init];
+        sharedClient = [[self alloc] init];
         [[self sharedClients] setObject:sharedClient forKey:identifier];
     }
     
