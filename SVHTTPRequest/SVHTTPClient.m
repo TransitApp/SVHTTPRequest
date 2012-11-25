@@ -113,15 +113,29 @@
 #pragma mark - Operation Cancelling
 
 - (void)cancelRequestsWithPath:(NSString *)path {
+    [self cancelRequestsWithPath:path waitUntilFinished:NO];
+}
+
+- (void)cancelRequestsWithPath:(NSString *)path waitUntilFinished:(BOOL)waitUntilFinished {
     [self.operationQueue.operations enumerateObjectsUsingBlock:^(id request, NSUInteger idx, BOOL *stop) {
         NSString *requestPath = [request valueForKey:@"requestPath"];
-        if([requestPath isEqualToString:path])
+        if([requestPath isEqualToString:path]) {
             [request cancel];
+
+            if (waitUntilFinished) {
+                [request waitUntilFinished];
+            }
+        }
     }];
 }
 
 - (void)cancelAllRequests {
     [self.operationQueue cancelAllOperations];
+}
+
+- (void)cancelAllRequestsAndWait {
+    [self cancelAllRequests];
+    [self.operationQueue waitUntilAllOperationsAreFinished];
 }
 
 #pragma mark -

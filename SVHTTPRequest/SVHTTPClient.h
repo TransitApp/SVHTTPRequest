@@ -32,7 +32,9 @@ typedef void (^SVHTTPRequestCompletionHandler)(id response, NSHTTPURLResponse *u
 - (SVHTTPRequest*)HEAD:(NSString*)path parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 - (void)cancelRequestsWithPath:(NSString*)path;
+- (void)cancelRequestsWithPath:(NSString *)path waitUntilFinished:(BOOL)waitUntilFinished;
 - (void)cancelAllRequests;
+- (void)cancelAllRequestsAndWait;
 
 // header values common to all requests, e.g. API keys
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
