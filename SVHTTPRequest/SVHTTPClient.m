@@ -57,6 +57,7 @@
 - (id)init {
     if (self = [super init]) {
         self.operationQueue = [[NSOperationQueue alloc] init];
+        self.basePath = @"";
     }
     
     return self;
