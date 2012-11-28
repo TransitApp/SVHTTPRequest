@@ -38,6 +38,8 @@ static NSString *defaultUserAgent;
 @property (nonatomic, strong) NSDictionary *operationParameters;
 @property (nonatomic, strong) NSHTTPURLResponse *operationURLResponse;
 @property (nonatomic, strong) NSString *operationSavePath;
+@property (nonatomic, strong) NSPort *operationPort;
+@property (nonatomic, strong) NSRunLoop *operationRunLoop;
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
 @property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
@@ -314,11 +316,9 @@ static NSString *defaultUserAgent;
         return;
     }
     
-    if(![NSThread isMainThread]) { // NSOperationQueue calls start from a bg thread (through GCD), but NSURLConnection already does that by itself
-        [self performSelectorOnMainThread:@selector(start) withObject:nil waitUntilDone:NO];
-        return;
-    }
-    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self increaseTaskCount];
+    });
     
     if(self.operationParameters)
         [self addParametersToRequest:self.operationParameters];
@@ -346,9 +346,18 @@ static NSString *defaultUserAgent;
     
     if(self.operationSavePath) // schedule on main run loop so scrolling doesn't prevent UI updates of the progress block
         [self.operationConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+    else
+        [self.operationConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     
     [self.operationConnection start];
-    [self increaseTaskCount];
+    
+    // make NSRunLoop stick around until operation is finished
+    if(![[NSRunLoop currentRunLoop] isEqual:[NSRunLoop mainRunLoop]]) {
+        self.operationPort = [NSPort port];
+        self.operationRunLoop = [NSRunLoop currentRunLoop];
+        [self.operationRunLoop addPort:self.operationPort forMode:NSDefaultRunLoopMode];
+        [self.operationRunLoop run];
+    }
     
 #if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
@@ -486,6 +495,13 @@ static NSString *defaultUserAgent;
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     self.timeoutTimer = nil;
+    
+    if(self.operationRunLoop) {
+        [self.operationRunLoop removePort:self.operationPort forMode:NSDefaultRunLoopMode];
+        [self.operationRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate date]];
+        self.operationRunLoop = nil;
+        self.operationPort = nil;
+    }
     
     dispatch_async(dispatch_get_main_queue(), ^{
         NSError *serverError = error;
