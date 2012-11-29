@@ -121,49 +121,49 @@ static NSString *defaultUserAgent;
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
-    
+
     return requestObject;
 }
 
 + (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     [requestObject start];
-    
+
     return requestObject;
 }
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
-    
+
     return requestObject;
 }
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
     [requestObject start];
-    
+
     return requestObject;
 }
 
 + (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPUT parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
-    
+
     return requestObject;
 }
 
 + (SVHTTPRequest*)DELETE:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodDELETE parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
-    
+
     return requestObject;
 }
 
 + (SVHTTPRequest*)HEAD:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse *, NSError *))block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodHEAD parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
-    
+
     return requestObject;
 }
 
@@ -180,16 +180,16 @@ static NSString *defaultUserAgent;
     self.operationSavePath = savePath;
     self.operationParameters = parameters;
     self.timeoutInterval = defaultTimeoutInterval;
-    
+
     self.saveDataDispatchGroup = dispatch_group_create();
     self.saveDataDispatchQueue = dispatch_queue_create("com.samvermette.SVHTTPRequest", DISPATCH_QUEUE_SERIAL);
-    
+
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
-    
+
     // pipeline all but POST and downloads
     if(method != SVHTTPRequestMethodPOST && !savePath)
         self.operationRequest.HTTPShouldUsePipelining = YES;
-    
+
     if(method == SVHTTPRequestMethodGET)
         [self.operationRequest setHTTPMethod:@"GET"];
     else if(method == SVHTTPRequestMethodPOST)
@@ -201,35 +201,35 @@ static NSString *defaultUserAgent;
     else if(method == SVHTTPRequestMethodHEAD)
         [self.operationRequest setHTTPMethod:@"HEAD"];
     self.state = SVHTTPRequestStateReady;
-    
+
     return self;
 }
 
 
 - (void)addParametersToRequest:(NSDictionary*)paramsDict {
-    
+
     NSString *method = self.operationRequest.HTTPMethod;
-    
+
     if([method isEqualToString:@"POST"] || [method isEqualToString:@"PUT"]) {
         if(self.sendParametersAsJSON) {
             [self.operationRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
             NSError *jsonError;
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:paramsDict options:0 error:&jsonError];
-            
+
             if(jsonData && jsonError)
                 [NSException raise:NSInvalidArgumentException format:@"Request parameters couldn't be serialized into JSON."];
-            
+
             [self.operationRequest setHTTPBody:jsonData];
         } else {
             __block BOOL hasData = NO;
-            
+
             [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
                 if([obj isKindOfClass:[NSData class]])
                     hasData = YES;
                 else if(![obj isKindOfClass:[NSString class]] && ![obj isKindOfClass:[NSNumber class]])
                     [NSException raise:NSInvalidArgumentException format:@"%@ requests only accept NSString and NSNumber parameters.", self.operationRequest.HTTPMethod];
             }];
-            
+
             if(!hasData) {
                 const char *stringData = [[self parameterStringForDictionary:paramsDict] UTF8String];
                 NSMutableData *postData = [NSMutableData dataWithBytes:stringData length:strlen(stringData)];
@@ -239,9 +239,9 @@ static NSString *defaultUserAgent;
                 NSString *boundary = @"SVHTTPRequestBoundary";
                 NSString *contentType = [NSString stringWithFormat:@"multipart/form-data; boundary=%@", boundary];
                 [self.operationRequest setValue:contentType forHTTPHeaderField: @"Content-Type"];
-                
+
                 __block NSMutableData *postData = [NSMutableData data];
-                
+
                 // add string parameters
                 [paramsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
                     if(![obj isKindOfClass:[NSData class]]) {
@@ -257,7 +257,7 @@ static NSString *defaultUserAgent;
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                     }
                 }];
-                
+
                 [postData appendData:[[NSString stringWithFormat:@"--%@--\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
                 [self.operationRequest setHTTPBody:postData];
             }
@@ -272,7 +272,7 @@ static NSString *defaultUserAgent;
 
 - (NSString*)parameterStringForDictionary:(NSDictionary*)parameters {
     NSMutableArray *stringParameters = [NSMutableArray arrayWithCapacity:parameters.count];
-    
+
     [parameters enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         if([obj isKindOfClass:[NSString class]]) {
             [stringParameters addObject:[NSString stringWithFormat:@"%@=%@", key, [obj encodedURLParameterString]]];
@@ -283,7 +283,7 @@ static NSString *defaultUserAgent;
         else
             [NSException raise:NSInvalidArgumentException format:@"%@ requests only accept NSString, NSNumber and NSData parameters.", self.operationRequest.HTTPMethod];
     }];
-    
+
     return [stringParameters componentsJoinedByString:@"&"];
 }
 
@@ -300,10 +300,10 @@ static NSString *defaultUserAgent;
 }
 
 - (void)setTimeoutTimer:(NSTimer *)newTimer {
-    
+
     if(timeoutTimer)
         [timeoutTimer invalidate], timeoutTimer = nil;
-    
+
     if(newTimer)
         timeoutTimer = newTimer;
 }
@@ -311,34 +311,34 @@ static NSString *defaultUserAgent;
 #pragma mark - NSOperation methods
 
 - (void)start {
-    
+
     if(self.isCancelled) {
         [self finish];
         return;
     }
-    
+
     // all requests should complete and run completion block unless we explicitely cancel them.
     self.backgroundTaskIdentifier = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid)
             [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
     }];
-    
+
     dispatch_async(dispatch_get_main_queue(), ^{
         [self increaseTaskCount];
     });
-    
+
     if(self.operationParameters)
         [self addParametersToRequest:self.operationParameters];
-    
+
     if(self.userAgent)
         [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
     else if(defaultUserAgent)
         [self.operationRequest setValue:defaultUserAgent forHTTPHeaderField:@"User-Agent"];
-        
+
     [self willChangeValueForKey:@"isExecuting"];
-    self.state = SVHTTPRequestStateExecuting;    
+    self.state = SVHTTPRequestStateExecuting;
     [self didChangeValueForKey:@"isExecuting"];
-    
+
     if(self.operationSavePath) {
         [[NSFileManager defaultManager] createFileAtPath:self.operationSavePath contents:nil attributes:nil];
         self.operationFileHandle = [NSFileHandle fileHandleForWritingAtPath:self.operationSavePath];
@@ -347,21 +347,21 @@ static NSString *defaultUserAgent;
         self.timeoutTimer = [NSTimer scheduledTimerWithTimeInterval:self.timeoutInterval target:self selector:@selector(requestTimeout) userInfo:nil repeats:NO];
         [self.operationRequest setTimeoutInterval:self.timeoutInterval];
     }
-    
+
     [self.operationRequest setCachePolicy:self.cachePolicy];
     self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:NO];
-    
+
     if(self.operationSavePath) // schedule on main run loop so scrolling doesn't prevent UI updates of the progress block
         [self.operationConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
     else
         [self.operationConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    
+
     [self.operationConnection start];
-    
+
 #if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
 #endif
-    
+
     // make NSRunLoop stick around until operation is finished
     if(![[NSRunLoop currentRunLoop] isEqual:[NSRunLoop mainRunLoop]]) {
         self.operationPort = [NSPort port];
@@ -375,15 +375,15 @@ static NSString *defaultUserAgent;
 - (void)finish {
     [self.operationConnection cancel];
     operationConnection = nil;
-    
+
     [self decreaseTaskCount];
-    
+
     if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid)
         [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
-    
+
     [self willChangeValueForKey:@"isExecuting"];
     [self willChangeValueForKey:@"isFinished"];
-    self.state = SVHTTPRequestStateFinished;    
+    self.state = SVHTTPRequestStateFinished;
     [self didChangeValueForKey:@"isExecuting"];
     [self didChangeValueForKey:@"isFinished"];
 }
@@ -391,7 +391,7 @@ static NSString *defaultUserAgent;
 - (void)cancel {
     if(![self isExecuting])
         return;
-    
+
     [super cancel];
     self.timeoutTimer = nil;
     [self finish];
@@ -427,14 +427,14 @@ static NSString *defaultUserAgent;
 #pragma mark Delegate Methods
 
 - (void)requestTimeout {
-    
+
     NSURL *failingURL = self.operationRequest.URL;
-    
+
     NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                               @"The operation timed out.", NSLocalizedDescriptionKey,
                               failingURL, NSURLErrorFailingURLErrorKey,
                               failingURL.absoluteString, NSURLErrorFailingURLStringErrorKey, nil];
-    
+
     NSError *timeoutError = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:userInfo];
     [self connection:nil didFailWithError:timeoutError];
 }
@@ -460,7 +460,7 @@ static NSString *defaultUserAgent;
         else
             [self.operationData appendData:data];
     });
-    
+
     if(self.operationProgressBlock) {
         //If its -1 that means the header does not have the content size value
         if(self.expectedContentLength != -1) {
@@ -473,8 +473,8 @@ static NSString *defaultUserAgent;
     }
 }
 
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {    
-    if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {        
+- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
+    if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {
         self.operationProgressBlock((float)totalBytesWritten/(float)totalBytesExpectedToWrite);
     }
 }
@@ -489,12 +489,12 @@ static NSString *defaultUserAgent;
             if(self.operationData && self.operationData.length > 0) {
                 response = [NSData dataWithData:self.operationData];
                 NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:response options:NSJSONReadingAllowFragments error:&error];
-                
+
                 if(jsonObject)
                     response = jsonObject;
             }
         }
-        
+
         [self callCompletionBlockWithResponse:response error:error];
     });
 }
@@ -505,17 +505,17 @@ static NSString *defaultUserAgent;
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     self.timeoutTimer = nil;
-    
+
     if(self.operationRunLoop) {
         [self.operationRunLoop removePort:self.operationPort forMode:NSDefaultRunLoopMode];
         [self.operationRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate date]];
         self.operationRunLoop = nil;
         self.operationPort = nil;
     }
-    
+
     dispatch_async(dispatch_get_main_queue(), ^{
         NSError *serverError = error;
-        
+
         if(!serverError && self.operationURLResponse.statusCode == 500) {
             serverError = [NSError errorWithDomain:NSURLErrorDomain
                                               code:NSURLErrorBadServerResponse
@@ -524,10 +524,10 @@ static NSString *defaultUserAgent;
                                                     self.operationRequest.URL, NSURLErrorFailingURLErrorKey,
                                                     self.operationRequest.URL.absoluteString, NSURLErrorFailingURLStringErrorKey, nil]];
         }
-        
+
         if(self.operationCompletionBlock && !self.isCancelled)
             self.operationCompletionBlock(response, self.operationURLResponse, serverError);
-        
+
         [self finish];
     });
 }
@@ -544,7 +544,7 @@ static NSString *defaultUserAgent;
     NSString *result = (__bridge_transfer NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
                                                                                             (__bridge CFStringRef)self,
                                                                                             NULL,
-                                                                                            CFSTR(":/=,!$&'()*+;[]@#?"),
+                                                                                            CFSTR(":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "),
                                                                                             kCFStringEncodingUTF8);
 	return result;
 }
@@ -575,42 +575,42 @@ static char encodingTable[64] = {
 	unsigned int charsonline = 0;
     short ctcopy = 0;
 	unsigned long ix = 0;
-    
+
 	while( YES ) {
 		ctremaining = lentext - ixtext;
 		if( ctremaining <= 0 ) break;
-        
+
 		for( i = 0; i < 3; i++ ) {
 			ix = ixtext + i;
 			if( ix < lentext ) inbuf[i] = bytes[ix];
 			else inbuf [i] = 0;
 		}
-        
+
 		outbuf [0] = (inbuf [0] & 0xFC) >> 2;
 		outbuf [1] = ((inbuf [0] & 0x03) << 4) | ((inbuf [1] & 0xF0) >> 4);
 		outbuf [2] = ((inbuf [1] & 0x0F) << 2) | ((inbuf [2] & 0xC0) >> 6);
 		outbuf [3] = inbuf [2] & 0x3F;
 		ctcopy = 4;
-        
+
 		switch( ctremaining ) {
-            case 1: 
-                ctcopy = 2; 
+            case 1:
+                ctcopy = 2;
                 break;
-            case 2: 
-                ctcopy = 3; 
+            case 2:
+                ctcopy = 3;
                 break;
 		}
-        
+
 		for( i = 0; i < ctcopy; i++ )
 			[result appendFormat:@"%c", encodingTable[outbuf[i]]];
-        
+
 		for( i = ctcopy; i < 4; i++ )
 			[result appendFormat:@"%c",'='];
-        
+
 		ixtext += 3;
 		charsonline += 4;
 	}
-    
+
 	return result;
 }
 
