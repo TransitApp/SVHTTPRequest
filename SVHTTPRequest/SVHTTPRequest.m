@@ -544,7 +544,7 @@ static NSString *defaultUserAgent;
     NSString *result = (__bridge_transfer NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
                                                                                             (__bridge CFStringRef)self,
                                                                                             NULL,
-                                                                                            CFSTR(":/=,!$&'()*+;[]@#?"),
+                                                                                            CFSTR(":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "),
                                                                                             kCFStringEncodingUTF8);
 	return result;
 }
