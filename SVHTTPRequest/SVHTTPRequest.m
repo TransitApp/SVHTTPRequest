@@ -40,6 +40,7 @@ static NSString *defaultUserAgent;
 @property (nonatomic, strong) NSString *operationSavePath;
 @property (nonatomic, strong) NSPort *operationPort;
 @property (nonatomic, strong) NSRunLoop *operationRunLoop;
+@property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
 @property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
@@ -316,6 +317,12 @@ static NSString *defaultUserAgent;
         return;
     }
     
+    // all requests should complete and run completion block unless we explicitely cancel them.
+    self.backgroundTaskIdentifier = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
+        if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid)
+            [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
+    }];
+    
     dispatch_async(dispatch_get_main_queue(), ^{
         [self increaseTaskCount];
     });
@@ -351,6 +358,10 @@ static NSString *defaultUserAgent;
     
     [self.operationConnection start];
     
+#if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
+    NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
+#endif
+    
     // make NSRunLoop stick around until operation is finished
     if(![[NSRunLoop currentRunLoop] isEqual:[NSRunLoop mainRunLoop]]) {
         self.operationPort = [NSPort port];
@@ -358,10 +369,6 @@ static NSString *defaultUserAgent;
         [self.operationRunLoop addPort:self.operationPort forMode:NSDefaultRunLoopMode];
         [self.operationRunLoop run];
     }
-    
-#if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
-    NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
-#endif
 }
 
 // private method; not part of NSOperation
@@ -370,6 +377,9 @@ static NSString *defaultUserAgent;
     operationConnection = nil;
     
     [self decreaseTaskCount];
+    
+    if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid)
+        [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
     
     [self willChangeValueForKey:@"isExecuting"];
     [self willChangeValueForKey:@"isFinished"];
