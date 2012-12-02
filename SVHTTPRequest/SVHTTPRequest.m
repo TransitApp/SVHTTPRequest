@@ -40,7 +40,10 @@ static NSString *defaultUserAgent;
 @property (nonatomic, strong) NSString *operationSavePath;
 @property (nonatomic, strong) NSPort *operationPort;
 @property (nonatomic, strong) NSRunLoop *operationRunLoop;
+
+#if TARGET_OS_IPHONE
 @property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
+#endif
 
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
 @property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
@@ -316,12 +319,14 @@ static NSString *defaultUserAgent;
         [self finish];
         return;
     }
-    
+
+#if TARGET_OS_IPHONE
     // all requests should complete and run completion block unless we explicitely cancel them.
     self.backgroundTaskIdentifier = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid)
             [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
     }];
+#endif
     
     dispatch_async(dispatch_get_main_queue(), ^{
         [self increaseTaskCount];
@@ -377,9 +382,11 @@ static NSString *defaultUserAgent;
     operationConnection = nil;
     
     [self decreaseTaskCount];
-    
+
+#if TARGET_OS_IPHONE
     if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid)
         [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
+#endif
     
     [self willChangeValueForKey:@"isExecuting"];
     [self willChangeValueForKey:@"isFinished"];
