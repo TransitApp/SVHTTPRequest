@@ -38,10 +38,10 @@ static NSString *defaultUserAgent;
 @property (nonatomic, strong) NSDictionary *operationParameters;
 @property (nonatomic, strong) NSHTTPURLResponse *operationURLResponse;
 @property (nonatomic, strong) NSString *operationSavePath;
-@property (nonatomic, strong) NSPort *operationPort;
-@property (nonatomic, strong) NSRunLoop *operationRunLoop;
 
 #if TARGET_OS_IPHONE
+@property (nonatomic, strong) NSPort *operationPort;
+@property (nonatomic, strong) NSRunLoop *operationRunLoop;
 @property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 #endif
 
@@ -366,7 +366,8 @@ static NSString *defaultUserAgent;
 #if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
 #endif
-    
+
+#if TARGET_OS_IPHONE
     // make NSRunLoop stick around until operation is finished
     if(![[NSRunLoop currentRunLoop] isEqual:[NSRunLoop mainRunLoop]]) {
         self.operationPort = [NSPort port];
@@ -374,6 +375,7 @@ static NSString *defaultUserAgent;
         [self.operationRunLoop addPort:self.operationPort forMode:NSDefaultRunLoopMode];
         [self.operationRunLoop run];
     }
+#endif
 }
 
 // private method; not part of NSOperation
@@ -512,13 +514,15 @@ static NSString *defaultUserAgent;
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     self.timeoutTimer = nil;
-    
+
+#if TARGET_OS_IPHONE
     if(self.operationRunLoop) {
         [self.operationRunLoop removePort:self.operationPort forMode:NSDefaultRunLoopMode];
         [self.operationRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate date]];
         self.operationRunLoop = nil;
         self.operationPort = nil;
     }
+#endif
     
     dispatch_async(dispatch_get_main_queue(), ^{
         NSError *serverError = error;
