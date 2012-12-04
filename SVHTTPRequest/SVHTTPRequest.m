@@ -356,10 +356,14 @@ static NSString *defaultUserAgent;
     [self.operationRequest setCachePolicy:self.cachePolicy];
     self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:NO];
     
+    NSOperationQueue *currentQueue = [NSOperationQueue currentQueue];
+    BOOL inBackgroundAndInOperationQueue = (currentQueue != nil && currentQueue != [NSOperationQueue mainQueue]);
+    NSRunLoop *targetRunLoop = (inBackgroundAndInOperationQueue) ? [NSRunLoop currentRunLoop] : [NSRunLoop mainRunLoop];
+    
     if(self.operationSavePath) // schedule on main run loop so scrolling doesn't prevent UI updates of the progress block
-        [self.operationConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+        [self.operationConnection scheduleInRunLoop:targetRunLoop forMode:NSRunLoopCommonModes];
     else
-        [self.operationConnection scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+        [self.operationConnection scheduleInRunLoop:targetRunLoop forMode:NSDefaultRunLoopMode];
     
     [self.operationConnection start];
     
@@ -368,7 +372,7 @@ static NSString *defaultUserAgent;
 #endif
     
     // make NSRunLoop stick around until operation is finished
-    if(![[NSRunLoop currentRunLoop] isEqual:[NSRunLoop mainRunLoop]]) {
+    if(inBackgroundAndInOperationQueue) {
         self.operationPort = [NSPort port];
         self.operationRunLoop = [NSRunLoop currentRunLoop];
         [self.operationRunLoop addPort:self.operationPort forMode:NSDefaultRunLoopMode];
