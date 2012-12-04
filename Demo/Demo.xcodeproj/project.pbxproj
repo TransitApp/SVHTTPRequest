@@ -16,7 +16,7 @@
 		220DF309150A7F9500E52072 /* SVHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 220FDF27149A65BE0021F43D /* SVHTTPClient.m */; };
 		220DF30A150A7F9800E52072 /* SVHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = 225389BF14297B0B00856491 /* SVHTTPRequest.m */; };
 		220FDF28149A65BE0021F43D /* SVHTTPClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 220FDF27149A65BE0021F43D /* SVHTTPClient.m */; };
-		220FDF35149AC4880021F43D /* README.textile in Resources */ = {isa = PBXBuildFile; fileRef = 220FDF34149AC4880021F43D /* README.textile */; };
+		220FDF35149AC4880021F43D /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 220FDF34149AC4880021F43D /* README.md */; };
 		2253899914297AFE00856491 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2253899814297AFE00856491 /* UIKit.framework */; };
 		2253899B14297AFE00856491 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2253899A14297AFE00856491 /* Foundation.framework */; };
 		2253899D14297AFE00856491 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2253899C14297AFE00856491 /* CoreGraphics.framework */; };
@@ -46,7 +46,7 @@
 		220DF303150A7B6800E52072 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		220FDF26149A65BE0021F43D /* SVHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVHTTPClient.h; sourceTree = "<group>"; };
 		220FDF27149A65BE0021F43D /* SVHTTPClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVHTTPClient.m; sourceTree = "<group>"; };
-		220FDF34149AC4880021F43D /* README.textile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.textile; path = ../README.textile; sourceTree = "<group>"; };
+		220FDF34149AC4880021F43D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		2253899414297AFE00856491 /* Demo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Demo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2253899814297AFE00856491 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		2253899A14297AFE00856491 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -125,7 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				22A748821630AA83004893A8 /* Default-568h@2x.png */,
-				220FDF34149AC4880021F43D /* README.textile */,
+				220FDF34149AC4880021F43D /* README.md */,
 				2253899E14297AFE00856491 /* Demo */,
 				225389B814297B0B00856491 /* SVHTTPRequest */,
 				220DF2F3150A7B6800E52072 /* MacDemo */,
@@ -273,7 +273,7 @@
 				225389A314297AFE00856491 /* InfoPlist.strings in Resources */,
 				225389AC14297AFE00856491 /* MainWindow.xib in Resources */,
 				225389B214297AFE00856491 /* DemoViewController.xib in Resources */,
-				220FDF35149AC4880021F43D /* README.textile in Resources */,
+				220FDF35149AC4880021F43D /* README.md in Resources */,
 				22A748831630AA83004893A8 /* Default-568h@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
