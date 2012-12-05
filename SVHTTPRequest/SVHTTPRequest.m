@@ -319,12 +319,14 @@ static NSString *defaultUserAgent;
         [self finish];
         return;
     }
-
+    
 #if TARGET_OS_IPHONE
     // all requests should complete and run completion block unless we explicitely cancel them.
     self.backgroundTaskIdentifier = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
-        if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid)
+        if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid) {
             [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
+            self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
+        }
     }];
 #endif
     
@@ -339,9 +341,9 @@ static NSString *defaultUserAgent;
         [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
     else if(defaultUserAgent)
         [self.operationRequest setValue:defaultUserAgent forHTTPHeaderField:@"User-Agent"];
-        
+    
     [self willChangeValueForKey:@"isExecuting"];
-    self.state = SVHTTPRequestStateExecuting;    
+    self.state = SVHTTPRequestStateExecuting;
     [self didChangeValueForKey:@"isExecuting"];
     
     if(self.operationSavePath) {
@@ -386,15 +388,17 @@ static NSString *defaultUserAgent;
     operationConnection = nil;
     
     [self decreaseTaskCount];
-
+    
 #if TARGET_OS_IPHONE
-    if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid)
+    if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid) {
         [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
+        self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
+    }
 #endif
     
     [self willChangeValueForKey:@"isExecuting"];
     [self willChangeValueForKey:@"isFinished"];
-    self.state = SVHTTPRequestStateFinished;    
+    self.state = SVHTTPRequestStateFinished;
     [self didChangeValueForKey:@"isExecuting"];
     [self didChangeValueForKey:@"isFinished"];
 }
@@ -484,18 +488,18 @@ static NSString *defaultUserAgent;
     }
 }
 
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {    
-    if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {        
+- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
+    if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {
         self.operationProgressBlock((float)totalBytesWritten/(float)totalBytesExpectedToWrite);
     }
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     dispatch_group_notify(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-
+        
         id response = [NSData dataWithData:self.operationData];
         NSError *error = nil;
-
+        
         if ([[operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
             if(self.operationData && self.operationData.length > 0) {
                 response = [NSData dataWithData:self.operationData];
@@ -604,11 +608,11 @@ static char encodingTable[64] = {
 		ctcopy = 4;
         
 		switch( ctremaining ) {
-            case 1: 
-                ctcopy = 2; 
+            case 1:
+                ctcopy = 2;
                 break;
-            case 2: 
-                ctcopy = 3; 
+            case 2:
+                ctcopy = 3;
                 break;
 		}
         
