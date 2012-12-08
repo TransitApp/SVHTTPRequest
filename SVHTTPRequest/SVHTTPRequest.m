@@ -38,8 +38,7 @@ static NSString *defaultUserAgent;
 @property (nonatomic, strong) NSDictionary *operationParameters;
 @property (nonatomic, strong) NSHTTPURLResponse *operationURLResponse;
 @property (nonatomic, strong) NSString *operationSavePath;
-@property (nonatomic, strong) NSPort *operationPort;
-@property (nonatomic, strong) NSRunLoop *operationRunLoop;
+@property (nonatomic, assign) CFRunLoopRef operationRunLoop;
 
 #if TARGET_OS_IPHONE
 @property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
@@ -375,10 +374,8 @@ static NSString *defaultUserAgent;
     
     // make NSRunLoop stick around until operation is finished
     if(inBackgroundAndInOperationQueue) {
-        self.operationPort = [NSPort port];
-        self.operationRunLoop = [NSRunLoop currentRunLoop];
-        [self.operationRunLoop addPort:self.operationPort forMode:NSDefaultRunLoopMode];
-        [self.operationRunLoop run];
+        self.operationRunLoop = CFRunLoopGetCurrent();
+        CFRunLoopRun();
     }
 }
 
@@ -521,12 +518,8 @@ static NSString *defaultUserAgent;
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
     self.timeoutTimer = nil;
     
-    if(self.operationRunLoop) {
-        [self.operationRunLoop removePort:self.operationPort forMode:NSDefaultRunLoopMode];
-        [self.operationRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate date]];
-        self.operationRunLoop = nil;
-        self.operationPort = nil;
-    }
+    if(self.operationRunLoop)
+        CFRunLoopStop(self.operationRunLoop);
     
     dispatch_async(dispatch_get_main_queue(), ^{
         NSError *serverError = error;
