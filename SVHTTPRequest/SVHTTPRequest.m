@@ -499,7 +499,6 @@ static NSString *defaultUserAgent;
         
         if ([[operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
             if(self.operationData && self.operationData.length > 0) {
-                response = [NSData dataWithData:self.operationData];
                 NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:response options:NSJSONReadingAllowFragments error:&error];
                 
                 if(jsonObject)
