@@ -11,6 +11,10 @@
 
 @interface NSData (Base64)
 - (NSString*)base64EncodingWithLineLength:(unsigned int)lineLength;
+- (NSString *)getImageType;
+- (BOOL)isJPG;
+- (BOOL)isPNG;
+- (BOOL)isGIF;
 @end
 
 @interface NSString (OAURLEncodingAdditions)
@@ -224,7 +228,7 @@ static NSString *defaultUserAgent;
             [self.operationRequest setHTTPBody:jsonData];
         } else {
             __block BOOL hasData = NO;
-            
+        
             [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
                 if([obj isKindOfClass:[NSData class]])
                     hasData = YES;
@@ -244,7 +248,7 @@ static NSString *defaultUserAgent;
                 [self.operationRequest setValue:contentType forHTTPHeaderField: @"Content-Type"];
                 
                 __block NSMutableData *postData = [NSMutableData data];
-                
+                __block int dataIdx = 0;
                 // add string parameters
                 [paramsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
                     if(![obj isKindOfClass:[NSData class]]) {
@@ -254,10 +258,23 @@ static NSString *defaultUserAgent;
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                     } else {
                         [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-                        [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"userfile\"\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
-                        [postData appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+                        
+                        NSString *imageExtension = [obj getImageType];
+                        
+                        if(imageExtension != nil)
+                        {
+                            [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"userfile%d%x.%@\"\r\n", key,dataIdx,(int)[[NSDate date] timeIntervalSince1970],imageExtension] dataUsingEncoding:NSUTF8StringEncoding]];
+                            [postData appendData:[[NSString stringWithFormat:@"Content-Type: image/%@\r\n\r\n",imageExtension] dataUsingEncoding:NSUTF8StringEncoding]];                            
+                        }
+                        else
+                        {
+                            [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"userfile%d%x\"\r\n", key,dataIdx,(int)[[NSDate date] timeIntervalSince1970]] dataUsingEncoding:NSUTF8StringEncoding]];
+                            [postData appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+                        }
+
                         [postData appendData:obj];
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+                        dataIdx++;
                     }
                 }];
                 
@@ -620,6 +637,75 @@ static char encodingTable[64] = {
 	}
     
 	return result;
+}
+
+- (BOOL)isJPG
+{
+    if (self.length > 4)
+    {
+        unsigned char buffer[4];
+        [self getBytes:&buffer length:4];
+        
+        return buffer[0]==0xff &&
+        buffer[1]==0xd8 &&
+        buffer[2]==0xff &&
+        buffer[3]==0xe0;
+    }
+    
+    return NO;
+}
+
+- (BOOL)isPNG
+{
+    if (self.length > 4)
+    {
+        unsigned char buffer[4];
+        [self getBytes:&buffer length:4];
+        
+        return buffer[0]==0x89 &&
+        buffer[1]==0x50 &&
+        buffer[2]==0x4e &&
+        buffer[3]==0x47;
+    }
+    
+    return NO;
+}
+
+- (BOOL)isGIF
+{
+    if(self.length >3)
+    {
+        unsigned char buffer[4];
+        [self getBytes:&buffer length:4];
+        
+        return buffer[0]==0x47 &&
+        buffer[1]==0x49 &&
+        buffer[2]==0x46; //Signature ASCII 'G','I','F'
+        
+    }
+    return  NO;
+}
+
+- (NSString *)getImageType
+{
+    NSString *ret;
+    if([self isJPG])
+    {
+        ret=@"jpg";
+    }
+    else if([self isGIF])
+    {
+        ret=@"gif";
+    }
+    else if([self isPNG])
+    {
+        ret=@"png";
+    }
+    else
+    {
+        ret=nil;
+    }
+    return ret;
 }
 
 @end
