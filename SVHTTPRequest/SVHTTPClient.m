@@ -28,10 +28,6 @@
 
 @implementation SVHTTPClient
 
-@synthesize username, password, basePath, baseParameters, userAgent, sendParametersAsJSON, cachePolicy, timeoutInterval;
-@synthesize operationQueue, HTTPHeaderFields;
-
-
 + (id)sharedClient {
     return [self sharedClientWithIdentifier:@"master"];
 }
@@ -68,17 +64,8 @@
 
 
 - (void)setBasicAuthWithUsername:(NSString *)newUsername password:(NSString *)newPassword {
-    
-    if(username)
-        username = nil;
-    
-    if(password)
-        password = nil;
-    
-    if(newUsername && newPassword) {
-        username = newUsername;
-        password = newPassword;
-    }
+    self.username = newUsername;
+    self.password = newPassword;
 }
 
 #pragma mark - Request Methods
@@ -128,10 +115,10 @@
 #pragma mark -
 
 - (NSMutableDictionary *)HTTPHeaderFields {
-    if(HTTPHeaderFields == nil)
-        HTTPHeaderFields = [NSMutableDictionary new];
+    if(_HTTPHeaderFields == nil)
+        _HTTPHeaderFields = [NSMutableDictionary new];
     
-    return HTTPHeaderFields;
+    return _HTTPHeaderFields;
 }
 
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field {

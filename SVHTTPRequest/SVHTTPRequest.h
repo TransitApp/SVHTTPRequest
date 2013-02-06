@@ -32,7 +32,6 @@ typedef NSUInteger SVHTTPRequestMethod;
 
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
-
 + (SVHTTPRequest*)HEAD:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 
 - (SVHTTPRequest*)initWithAddress:(NSString*)urlString 

@@ -75,20 +75,13 @@ static NSString *defaultUserAgent;
 
 @implementation SVHTTPRequest
 
-// public properties
-@synthesize sendParametersAsJSON, cachePolicy, timeoutInterval;
-
-// private properties
-@synthesize operationRequest, operationData, operationConnection, operationParameters, operationURLResponse, operationFileHandle, state;
-@synthesize operationSavePath, operationCompletionBlock, operationProgressBlock, timeoutTimer;
-@synthesize expectedContentLength, receivedContentLength, saveDataDispatchGroup, saveDataDispatchQueue;
-@synthesize requestPath, userAgent, client;
+@synthesize state = _state;
 
 - (void)dealloc {
-    [operationConnection cancel];
+    [_operationConnection cancel];
 #if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
-    dispatch_release(saveDataDispatchGroup);
-    dispatch_release(saveDataDispatchQueue);
+    dispatch_release(_saveDataDispatchGroup);
+    dispatch_release(_saveDataDispatchQueue);
 #endif
 }
 
@@ -303,11 +296,11 @@ static NSString *defaultUserAgent;
 
 - (void)setTimeoutTimer:(NSTimer *)newTimer {
     
-    if(timeoutTimer)
-        [timeoutTimer invalidate], timeoutTimer = nil;
+    if(_timeoutTimer)
+        [_timeoutTimer invalidate], _timeoutTimer = nil;
     
     if(newTimer)
-        timeoutTimer = newTimer;
+        _timeoutTimer = newTimer;
 }
 
 #pragma mark - NSOperation methods
@@ -337,7 +330,7 @@ static NSString *defaultUserAgent;
         [self addParametersToRequest:self.operationParameters];
     
     if(self.userAgent)
-        [self.operationRequest setValue:userAgent forHTTPHeaderField:@"User-Agent"];
+        [self.operationRequest setValue:self.userAgent forHTTPHeaderField:@"User-Agent"];
     else if(defaultUserAgent)
         [self.operationRequest setValue:defaultUserAgent forHTTPHeaderField:@"User-Agent"];
     
@@ -382,7 +375,7 @@ static NSString *defaultUserAgent;
 // private method; not part of NSOperation
 - (void)finish {
     [self.operationConnection cancel];
-    operationConnection = nil;
+    self.operationConnection = nil;
     
     [self decreaseTaskCount];
     
@@ -423,14 +416,14 @@ static NSString *defaultUserAgent;
 
 - (SVHTTPRequestState)state {
     @synchronized(self) {
-        return state;
+        return _state;
     }
 }
 
 - (void)setState:(SVHTTPRequestState)newState {
     @synchronized(self) {
         [self willChangeValueForKey:@"state"];
-        state = newState;
+        _state = newState;
         [self didChangeValueForKey:@"state"];
     }
 }
@@ -497,7 +490,7 @@ static NSString *defaultUserAgent;
         id response = [NSData dataWithData:self.operationData];
         NSError *error = nil;
         
-        if ([[operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
+        if ([[self.operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
             if(self.operationData && self.operationData.length > 0) {
                 NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:response options:NSJSONReadingAllowFragments error:&error];
                 
