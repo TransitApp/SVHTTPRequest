@@ -146,7 +146,7 @@
     [(id<SVHTTPRequestPrivateMethods>)requestOperation setClient:self];
     
     [self.HTTPHeaderFields enumerateKeysAndObjectsUsingBlock:^(NSString *field, NSString *value, BOOL *stop) {
-        [(id<SVHTTPRequestPrivateMethods>)requestOperation setValue:value forHTTPHeaderField:field];
+        [requestOperation setValue:value forHTTPHeaderField:field];
     }];
     
     if(self.username && self.password)

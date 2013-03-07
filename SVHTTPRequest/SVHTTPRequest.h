@@ -39,6 +39,8 @@ typedef NSUInteger SVHTTPRequestMethod;
                        parameters:(NSDictionary*)parameters 
                        completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
+- (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
+
 + (void)setDefaultTimeoutInterval:(NSTimeInterval)interval;
 + (void)setDefaultUserAgent:(NSString*)userAgent;
 
@@ -65,6 +67,5 @@ typedef NSUInteger SVHTTPRequestMethod;
                        completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 - (void)signRequestWithUsername:(NSString*)username password:(NSString*)password;
-- (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 
 @end
