@@ -131,21 +131,21 @@ static NSString *defaultUserAgent;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
     
     return requestObject;
 }
 
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
     [requestObject start];
     
     return requestObject;
 }
 
-+ (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
++ (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSObject *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPUT parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
     
@@ -205,22 +205,24 @@ static NSString *defaultUserAgent;
 }
 
 
-- (void)addParametersToRequest:(NSDictionary*)paramsDict {
+- (void)addParametersToRequest:(NSObject*)parameters {
     
     NSString *method = self.operationRequest.HTTPMethod;
     
     if([method isEqualToString:@"POST"] || [method isEqualToString:@"PUT"]) {
         if(self.sendParametersAsJSON) {
-            [self.operationRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-            NSError *jsonError;
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:paramsDict options:0 error:&jsonError];
-            
-            if(jsonData && jsonError)
-                [NSException raise:NSInvalidArgumentException format:@"Request parameters couldn't be serialized into JSON."];
-            
-            [self.operationRequest setHTTPBody:jsonData];
-        } else {
+            if([parameters isKindOfClass:[NSArray class]] || [parameters isKindOfClass:[NSDictionary class]]) {
+                [self.operationRequest setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+                NSError *jsonError;
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:parameters options:0 error:&jsonError];
+                [self.operationRequest setHTTPBody:jsonData];
+            }
+            else
+                [NSException raise:NSInvalidArgumentException format:@"POST and PUT parameters must be provided as NSDictionary or NSArray when sendParametersAsJSON is set to YES."];
+        }
+        else if([parameters isKindOfClass:[NSDictionary class]]) {
             __block BOOL hasData = NO;
+            NSDictionary *paramsDict = (NSDictionary*)parameters;
         
             [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
                 if([obj isKindOfClass:[NSData class]])
@@ -272,12 +274,18 @@ static NSString *defaultUserAgent;
                 [self.operationRequest setHTTPBody:postData];
             }
         }
-    } else {
+        else
+            [NSException raise:NSInvalidArgumentException format:@"POST and PUT parameters must be provided as NSDictionary when sendParametersAsJSON is set to NO."];
+    }
+    else if([parameters isKindOfClass:[NSDictionary class]]) {
+        NSDictionary *paramsDict = (NSDictionary*)parameters;
         NSString *baseAddress = self.operationRequest.URL.absoluteString;
         if(paramsDict.count > 0)
             baseAddress = [baseAddress stringByAppendingFormat:@"?%@", [self parameterStringForDictionary:paramsDict]];
         [self.operationRequest setURL:[NSURL URLWithString:baseAddress]];
     }
+    else
+        [NSException raise:NSInvalidArgumentException format:@"GET and DELETE parameters must be provided as NSDictionary."];
 }
 
 - (NSString*)parameterStringForDictionary:(NSDictionary*)parameters {

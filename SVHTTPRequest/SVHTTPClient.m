@@ -133,12 +133,22 @@
                     completion:(SVHTTPRequestCompletionHandler)completionBlock  {
     
     NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath, path];
+    id mergedParameters;
     
-    NSMutableDictionary *mergedParameters = [NSMutableDictionary dictionary];
-    [mergedParameters addEntriesFromDictionary:parameters];
-    [mergedParameters addEntriesFromDictionary:self.baseParameters];
+    if((method == SVHTTPRequestMethodPOST || method == SVHTTPRequestMethodPUT) && self.sendParametersAsJSON && ![parameters isKindOfClass:[NSDictionary class]])
+        mergedParameters = parameters;
+    else {
+        mergedParameters = [NSMutableDictionary dictionary];
+        [mergedParameters addEntriesFromDictionary:parameters];
+        [mergedParameters addEntriesFromDictionary:self.baseParameters];
+    }
     
-    SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initWithAddress:completeURLString method:method parameters:mergedParameters saveToPath:savePath progress:progressBlock completion:completionBlock];
+    SVHTTPRequest *requestOperation = [(id<SVHTTPRequestPrivateMethods>)[SVHTTPRequest alloc] initWithAddress:completeURLString
+                                                                                                       method:method
+                                                                                                   parameters:mergedParameters
+                                                                                                   saveToPath:savePath
+                                                                                                     progress:progressBlock
+                                                                                                   completion:completionBlock];
     requestOperation.sendParametersAsJSON = self.sendParametersAsJSON;
     requestOperation.cachePolicy = self.cachePolicy;
     requestOperation.userAgent = self.userAgent;

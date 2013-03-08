@@ -27,16 +27,16 @@ typedef NSUInteger SVHTTPRequestMethod;
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
-+ (SVHTTPRequest*)POST:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSDictionary *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock;
++ (SVHTTPRequest*)POST:(NSString*)address parameters:(NSObject*)parameters completion:(SVHTTPRequestCompletionHandler)block;
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock;
++ (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSObject*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 
-+ (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 + (SVHTTPRequest*)HEAD:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 
 - (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
                            method:(SVHTTPRequestMethod)method 
-                       parameters:(NSDictionary*)parameters 
+                       parameters:(NSObject*)parameters 
                        completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
@@ -61,7 +61,7 @@ typedef NSUInteger SVHTTPRequestMethod;
 
 - (SVHTTPRequest*)initWithAddress:(NSString*)urlString 
                            method:(SVHTTPRequestMethod)method 
-                       parameters:(NSDictionary*)parameters 
+                       parameters:(NSObject*)parameters 
                        saveToPath:(NSString*)savePath
                          progress:(void (^)(float))progressBlock
                        completion:(SVHTTPRequestCompletionHandler)completionBlock;
