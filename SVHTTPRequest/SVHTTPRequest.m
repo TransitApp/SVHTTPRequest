@@ -48,8 +48,13 @@ static NSString *defaultUserAgent;
 @property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 #endif
 
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
 @property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
 @property (nonatomic, assign) dispatch_group_t saveDataDispatchGroup;
+#else
+@property (nonatomic, strong) dispatch_queue_t saveDataDispatchQueue;
+@property (nonatomic, strong) dispatch_group_t saveDataDispatchGroup;
+#endif
 
 @property (nonatomic, copy) SVHTTPRequestCompletionHandler operationCompletionBlock;
 @property (nonatomic, copy) void (^operationProgressBlock)(float progress);
