@@ -152,6 +152,7 @@
     requestOperation.sendParametersAsJSON = self.sendParametersAsJSON;
     requestOperation.cachePolicy = self.cachePolicy;
     requestOperation.userAgent = self.userAgent;
+    requestOperation.timeoutInterval = self.timeoutInterval;
     
     [(id<SVHTTPRequestPrivateMethods>)requestOperation setClient:self];
     
