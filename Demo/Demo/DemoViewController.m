@@ -12,7 +12,6 @@
 @implementation DemoViewController
 
 - (IBAction)watchersRequest {
-    
     watchersLabel.text = nil;
     
     [SVHTTPRequest GET:@"https://api.github.com/repos/samvermette/SVHTTPRequest"
@@ -23,12 +22,9 @@
 }
 
 - (IBAction)twitterRequest {
-    
     twitterImageView.image = nil;
-    followersLabel.text = nil;
     
     [[SVHTTPClient sharedClient] setBasePath:@"http://api.twitter.com/1/"];
-    
     [[SVHTTPClient sharedClient] GET:@"users/profile_image"
                           parameters:[NSDictionary dictionaryWithObjectsAndKeys:
                                       @"samvermette", @"screen_name",
@@ -37,16 +33,9 @@
                           completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
                               twitterImageView.image = [UIImage imageWithData:response];
                           }];
-    
-    [[SVHTTPClient sharedClient] GET:@"users/show.json"
-                          parameters:[NSDictionary dictionaryWithObject:@"samvermette" forKey:@"screen_name"]
-                          completion:^(id response, NSHTTPURLResponse *urlResponse, NSError *error) {
-                              followersLabel.text = [NSString stringWithFormat:@"@samvermette has %@ followers", [response valueForKey:@"followers_count"]];
-                          }];
 }
 
 - (IBAction)progressRequest {
-    
     progressLabel.text = nil;
     
     [SVHTTPRequest GET:@"http://sanjosetransit.com/extras/SJTransit_Icons.zip" 
