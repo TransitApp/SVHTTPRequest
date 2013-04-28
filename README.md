@@ -1,10 +1,10 @@
 # SVHTTPRequest
 
-SVHTTPRequest is a simple and extremely straightforward way to communicate with RESTful web APIs for iOS and Mac. It's a simpler alternative to bulky [ASIHTTPRequest](https://github.com/pokeb/asi-http-request/tree), [AFNetworking](https://github.com/AFNetworking/AFNetworking) and [RESTKit](https://github.com/RestKit/RestKit). It is blocked-based, uses `NSURLConnection`, ARC, as well as `NSJSONSerialization` to automatically parse JSON responses (making it only compatible with iOS 5 and Mac OS X Lion).
+SVHTTPRequest lets you easily interact with RESTful (GET, POST, DELETE, PUT) web APIs. It is blocked-based, uses `NSURLConnection`, ARC, as well as `NSJSONSerialization` to automatically parse JSON responses.
 
 **SVHTTPRequest features:**
 
-* straightforward singleton convenience methods for making `GET`, `POST`, `PUT`, `DELETE`, `HEAD` and download requests.
+* class methods for quickly making `GET`, `POST`, `PUT`, `DELETE`, `HEAD` and download requests.
 * completion block handler returning `response` (`NSObject` if JSON, otherwise `NSData`), `NSHTTPURLResponse` and `NSError` objects.
 * persistent `basePath` and basic authentication signing when using `SVHTTPClient`.
 * support for `multipart/form-data` parameters in POST and PUT requests.
