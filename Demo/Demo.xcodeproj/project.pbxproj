@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2206A0A0172CDCBE004A4006 /* SVHTTPRequest.podspec in Resources */ = {isa = PBXBuildFile; fileRef = 2206A09F172CDCBE004A4006 /* SVHTTPRequest.podspec */; };
 		220DF2EE150A7B6800E52072 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 220DF2ED150A7B6800E52072 /* Cocoa.framework */; };
 		220DF2F8150A7B6800E52072 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 220DF2F6150A7B6800E52072 /* InfoPlist.strings */; };
 		220DF2FA150A7B6800E52072 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 220DF2F9150A7B6800E52072 /* main.m */; };
@@ -31,6 +32,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2206A09F172CDCBE004A4006 /* SVHTTPRequest.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SVHTTPRequest.podspec; sourceTree = "<group>"; };
 		220DF2EB150A7B6800E52072 /* MacDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		220DF2ED150A7B6800E52072 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		220DF2F0150A7B6800E52072 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -63,7 +65,7 @@
 		225389B114297AFE00856491 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DemoViewController.xib; sourceTree = "<group>"; };
 		225389BE14297B0B00856491 /* SVHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVHTTPRequest.h; sourceTree = "<group>"; };
 		225389BF14297B0B00856491 /* SVHTTPRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVHTTPRequest.m; sourceTree = "<group>"; };
-		22A748821630AA83004893A8 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
+		22A748821630AA83004893A8 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Default-568h@2x.png"; path = "../Default-568h@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,8 +126,8 @@
 		2253898914297AFD00856491 = {
 			isa = PBXGroup;
 			children = (
-				22A748821630AA83004893A8 /* Default-568h@2x.png */,
 				220FDF34149AC4880021F43D /* README.md */,
+				2206A09F172CDCBE004A4006 /* SVHTTPRequest.podspec */,
 				2253899E14297AFE00856491 /* Demo */,
 				225389B814297B0B00856491 /* SVHTTPRequest */,
 				220DF2F3150A7B6800E52072 /* MacDemo */,
@@ -172,6 +174,7 @@
 		2253899F14297AFE00856491 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				22A748821630AA83004893A8 /* Default-568h@2x.png */,
 				225389A014297AFE00856491 /* Demo-Info.plist */,
 				225389A114297AFE00856491 /* InfoPlist.strings */,
 				225389A414297AFE00856491 /* main.m */,
@@ -275,6 +278,7 @@
 				225389B214297AFE00856491 /* DemoViewController.xib in Resources */,
 				220FDF35149AC4880021F43D /* README.md in Resources */,
 				22A748831630AA83004893A8 /* Default-568h@2x.png in Resources */,
+				2206A0A0172CDCBE004A4006 /* SVHTTPRequest.podspec in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
