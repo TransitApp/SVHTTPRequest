@@ -30,8 +30,8 @@ enum {
 typedef NSUInteger SVHTTPRequestState;
 
 static NSUInteger taskCount = 0;
-static NSTimeInterval defaultTimeoutInterval = 20;
 static NSString *defaultUserAgent;
+static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 @interface SVHTTPRequest ()
 
@@ -90,11 +90,17 @@ static NSString *defaultUserAgent;
 }
 
 + (void)setDefaultTimeoutInterval:(NSTimeInterval)interval {
-    defaultTimeoutInterval = interval;
+    SVHTTPRequestTimeoutInterval = interval;
 }
 
 + (void)setDefaultUserAgent:(NSString *)userAgent {
     defaultUserAgent = userAgent;
+}
+
+- (NSUInteger)timeoutInterval {
+    if(_timeoutInterval == 0)
+        return SVHTTPRequestTimeoutInterval;
+    return _timeoutInterval;
 }
 
 - (void)increaseTaskCount {
@@ -178,7 +184,6 @@ static NSString *defaultUserAgent;
     self.operationProgressBlock = progressBlock;
     self.operationSavePath = savePath;
     self.operationParameters = parameters;
-    self.timeoutInterval = defaultTimeoutInterval;
     
     self.saveDataDispatchGroup = dispatch_group_create();
     self.saveDataDispatchQueue = dispatch_queue_create("com.samvermette.SVHTTPRequest", DISPATCH_QUEUE_SERIAL);

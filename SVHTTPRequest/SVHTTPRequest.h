@@ -19,7 +19,6 @@ enum {
     SVHTTPRequestMethodDELETE,
     SVHTTPRequestMethodHEAD
 };
-
 typedef NSUInteger SVHTTPRequestMethod;
 
 @interface SVHTTPRequest : NSOperation
