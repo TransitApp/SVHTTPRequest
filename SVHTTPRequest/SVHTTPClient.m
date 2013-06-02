@@ -28,11 +28,11 @@
 
 @implementation SVHTTPClient
 
-+ (id)sharedClient {
++ (instancetype)sharedClient {
     return [self sharedClientWithIdentifier:@"master"];
 }
 
-+ (id)sharedClientWithIdentifier:(NSString *)identifier {
++ (instancetype)sharedClientWithIdentifier:(NSString *)identifier {
     SVHTTPClient *sharedClient = [[self sharedClients] objectForKey:identifier];
     
     if(!sharedClient) {

@@ -15,8 +15,8 @@ typedef void (^SVHTTPRequestCompletionHandler)(id response, NSHTTPURLResponse *u
 
 @interface SVHTTPClient : NSObject
 
-+ (id)sharedClient;
-+ (id)sharedClientWithIdentifier:(NSString*)identifier;
++ (instancetype)sharedClient;
++ (instancetype)sharedClientWithIdentifier:(NSString*)identifier;
 
 - (void)setBasicAuthWithUsername:(NSString*)username password:(NSString*)password;
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;

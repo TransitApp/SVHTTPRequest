@@ -27,7 +27,7 @@ typedef NSUInteger SVHTTPRequestMethod;
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 + (SVHTTPRequest*)POST:(NSString*)address parameters:(NSObject*)parameters completion:(SVHTTPRequestCompletionHandler)block;
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock;
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSObject*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
