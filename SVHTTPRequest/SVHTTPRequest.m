@@ -29,7 +29,7 @@ enum {
 
 typedef NSUInteger SVHTTPRequestState;
 
-static NSUInteger taskCount = 0;
+static NSInteger SVHTTPRequestTaskCount = 0;
 static NSString *defaultUserAgent;
 static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
@@ -103,20 +103,20 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return _timeoutInterval;
 }
 
-- (void)increaseTaskCount {
-    taskCount++;
+- (void)increaseSVHTTPRequestTaskCount {
+    SVHTTPRequestTaskCount++;
     [self toggleNetworkActivityIndicator];
 }
 
-- (void)decreaseTaskCount {
-    taskCount--;
+- (void)decreaseSVHTTPRequestTaskCount {
+    SVHTTPRequestTaskCount = MAX(0, SVHTTPRequestTaskCount-1);
     [self toggleNetworkActivityIndicator];
 }
 
 - (void)toggleNetworkActivityIndicator {
 #if TARGET_OS_IPHONE
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(taskCount > 0)];
+        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(SVHTTPRequestTaskCount > 0)];
     });
 #endif
 }
@@ -351,7 +351,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 #endif
     
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self increaseTaskCount];
+        [self increaseSVHTTPRequestTaskCount];
     });
     
     if(self.operationParameters)
@@ -405,7 +405,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     [self.operationConnection cancel];
     self.operationConnection = nil;
     
-    [self decreaseTaskCount];
+    [self decreaseSVHTTPRequestTaskCount];
     
 #if TARGET_OS_IPHONE
     if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid) {
