@@ -48,7 +48,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 #endif
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000 && MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_7
 @property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
 @property (nonatomic, assign) dispatch_group_t saveDataDispatchGroup;
 #else
