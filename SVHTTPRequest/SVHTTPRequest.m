@@ -83,7 +83,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 - (void)dealloc {
     [_operationConnection cancel];
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
+#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000 && MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_7
     dispatch_release(_saveDataDispatchGroup);
     dispatch_release(_saveDataDispatchQueue);
 #endif
