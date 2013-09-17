@@ -230,7 +230,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
             NSDictionary *paramsDict = (NSDictionary*)parameters;
         
             [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-                if([obj isKindOfClass:[NSData class]])
+                if([obj isKindOfClass:[NSData class]] || [obj isKindOfClass:[NSURL class]])
                     hasData = YES;
                 else if(![obj isKindOfClass:[NSString class]] && ![obj isKindOfClass:[NSNumber class]])
                     [NSException raise:NSInvalidArgumentException format:@"%@ requests only accept NSString and NSNumber parameters.", self.operationRequest.HTTPMethod];
@@ -251,25 +251,38 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
                 __block int dataIdx = 0;
                 // add string parameters
                 [paramsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-                    if(![obj isKindOfClass:[NSData class]]) {
+                    if(![obj isKindOfClass:[NSData class]] && ![obj isKindOfClass:[NSURL class]]) {
                         [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
                         [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
                         [postData appendData:[[NSString stringWithFormat:@"%@", obj] dataUsingEncoding:NSUTF8StringEncoding]];
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                     } else {
-                        [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-                        
-                        NSString *imageExtension = [obj getImageType];
-                        if(imageExtension != nil) {
-                            [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"userfile%d%x.%@\"\r\n", key,dataIdx,(int)[[NSDate date] timeIntervalSince1970],imageExtension] dataUsingEncoding:NSUTF8StringEncoding]];
-                            [postData appendData:[[NSString stringWithFormat:@"Content-Type: image/%@\r\n\r\n",imageExtension] dataUsingEncoding:NSUTF8StringEncoding]];                            
+                        NSString *fileName = nil;
+                        NSData *data = nil;
+                        NSString *imageExtension = nil;
+                        if ([obj isKindOfClass:[NSURL class]]) {
+                            fileName = [obj lastPathComponent];
+                            data = [NSData dataWithContentsOfURL:obj];
                         }
                         else {
-                            [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"userfile%d%x\"\r\n", key,dataIdx,(int)[[NSDate date] timeIntervalSince1970]] dataUsingEncoding:NSUTF8StringEncoding]];
+                            imageExtension = [obj getImageType];
+                            fileName = [NSString stringWithFormat:@"userfile%d%x", dataIdx, (int)[[NSDate date] timeIntervalSince1970]];
+                            if (imageExtension != nil)
+                                fileName = [fileName stringByAppendingPathExtension:imageExtension];
+                            data = obj;
+                        }
+                        
+                        [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:NSUTF8StringEncoding]];
+                        
+                        if(imageExtension != nil) {
+                            [postData appendData:[[NSString stringWithFormat:@"Content-Type: image/%@\r\n\r\n",imageExtension] dataUsingEncoding:NSUTF8StringEncoding]];
+                        }
+                        else {
                             [postData appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                         }
 
-                        [postData appendData:obj];
+                        [postData appendData:data];
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                         dataIdx++;
                     }
