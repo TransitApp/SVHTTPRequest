@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name            = 'SVHTTPRequest'
-  s.version         = '0.5'
+  s.version         = '0.5.1'
   s.license         = 'MIT'
   s.summary         = 'Simple REST client for iOS and Mac.'
   s.homepage        = 'http://samvermette.com/310'
