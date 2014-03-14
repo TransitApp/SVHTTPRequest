@@ -491,6 +491,20 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     self.operationURLResponse = (NSHTTPURLResponse*)response;
 }
 
+- (void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
+{
+    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust]) {
+        if (_dismissNSURLAuthenticationMethodServerTrust) {
+            NSURLProtectionSpace * protectionSpace = [challenge protectionSpace];
+            NSURLCredential* credentail = [NSURLCredential credentialForTrust:[protectionSpace serverTrust]];
+            [[challenge sender] useCredential:credentail forAuthenticationChallenge:challenge];
+        }
+        else {
+            [[challenge sender] continueWithoutCredentialForAuthenticationChallenge:challenge];
+        }
+    }
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
     dispatch_group_async(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
         if(self.operationSavePath) {
