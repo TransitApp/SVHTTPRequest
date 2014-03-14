@@ -31,7 +31,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 static NSInteger SVHTTPRequestTaskCount = 0;
 static NSString *defaultUserAgent;
-static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
+static NSTimeInterval SVHTTPRequestTimeoutInterval = 100;
 
 @interface SVHTTPRequest ()
 
@@ -366,6 +366,10 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self increaseSVHTTPRequestTaskCount];
     });
+    
+    if (self.headers) {
+        [self.operationRequest setAllHTTPHeaderFields:self.headers];
+    }
     
     if(self.operationParameters)
         [self addParametersToRequest:self.operationParameters];
