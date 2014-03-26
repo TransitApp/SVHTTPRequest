@@ -29,7 +29,7 @@ enum {
 
 typedef NSUInteger SVHTTPRequestState;
 
-static NSUInteger taskCount = 0;
+static NSInteger SVHTTPRequestTaskCount = 0;
 static NSString *defaultUserAgent;
 static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
@@ -48,7 +48,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 #endif
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
+#if !OS_OBJECT_USE_OBJC
 @property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
 @property (nonatomic, assign) dispatch_group_t saveDataDispatchGroup;
 #else
@@ -83,7 +83,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 - (void)dealloc {
     [_operationConnection cancel];
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < 60000
+#if !OS_OBJECT_USE_OBJC
     dispatch_release(_saveDataDispatchGroup);
     dispatch_release(_saveDataDispatchQueue);
 #endif
@@ -103,20 +103,20 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return _timeoutInterval;
 }
 
-- (void)increaseTaskCount {
-    taskCount++;
+- (void)increaseSVHTTPRequestTaskCount {
+    SVHTTPRequestTaskCount++;
     [self toggleNetworkActivityIndicator];
 }
 
-- (void)decreaseTaskCount {
-    taskCount--;
+- (void)decreaseSVHTTPRequestTaskCount {
+    SVHTTPRequestTaskCount = MAX(0, SVHTTPRequestTaskCount-1);
     [self toggleNetworkActivityIndicator];
 }
 
 - (void)toggleNetworkActivityIndicator {
 #if TARGET_OS_IPHONE
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(taskCount > 0)];
+        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(SVHTTPRequestTaskCount > 0)];
     });
 #endif
 }
@@ -230,7 +230,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
             NSDictionary *paramsDict = (NSDictionary*)parameters;
         
             [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-                if([obj isKindOfClass:[NSData class]])
+                if([obj isKindOfClass:[NSData class]] || [obj isKindOfClass:[NSURL class]])
                     hasData = YES;
                 else if(![obj isKindOfClass:[NSString class]] && ![obj isKindOfClass:[NSNumber class]])
                     [NSException raise:NSInvalidArgumentException format:@"%@ requests only accept NSString and NSNumber parameters.", self.operationRequest.HTTPMethod];
@@ -251,25 +251,38 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
                 __block int dataIdx = 0;
                 // add string parameters
                 [paramsDict enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-                    if(![obj isKindOfClass:[NSData class]]) {
+                    if(![obj isKindOfClass:[NSData class]] && ![obj isKindOfClass:[NSURL class]]) {
                         [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
                         [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", key] dataUsingEncoding:NSUTF8StringEncoding]];
                         [postData appendData:[[NSString stringWithFormat:@"%@", obj] dataUsingEncoding:NSUTF8StringEncoding]];
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                     } else {
-                        [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-                        
-                        NSString *imageExtension = [obj getImageType];
-                        if(imageExtension != nil) {
-                            [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"userfile%d%x.%@\"\r\n", key,dataIdx,(int)[[NSDate date] timeIntervalSince1970],imageExtension] dataUsingEncoding:NSUTF8StringEncoding]];
-                            [postData appendData:[[NSString stringWithFormat:@"Content-Type: image/%@\r\n\r\n",imageExtension] dataUsingEncoding:NSUTF8StringEncoding]];                            
+                        NSString *fileName = nil;
+                        NSData *data = nil;
+                        NSString *imageExtension = nil;
+                        if ([obj isKindOfClass:[NSURL class]]) {
+                            fileName = [obj lastPathComponent];
+                            data = [NSData dataWithContentsOfURL:obj];
                         }
                         else {
-                            [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"userfile%d%x\"\r\n", key,dataIdx,(int)[[NSDate date] timeIntervalSince1970]] dataUsingEncoding:NSUTF8StringEncoding]];
+                            imageExtension = [obj getImageType];
+                            fileName = [NSString stringWithFormat:@"userfile%d%x", dataIdx, (int)[[NSDate date] timeIntervalSince1970]];
+                            if (imageExtension != nil)
+                                fileName = [fileName stringByAppendingPathExtension:imageExtension];
+                            data = obj;
+                        }
+                        
+                        [postData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [postData appendData:[[NSString stringWithFormat:@"Content-Disposition: attachment; name=\"%@\"; filename=\"%@\"\r\n", key, fileName] dataUsingEncoding:NSUTF8StringEncoding]];
+                        
+                        if(imageExtension != nil) {
+                            [postData appendData:[[NSString stringWithFormat:@"Content-Type: image/%@\r\n\r\n",imageExtension] dataUsingEncoding:NSUTF8StringEncoding]];
+                        }
+                        else {
                             [postData appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                         }
 
-                        [postData appendData:obj];
+                        [postData appendData:data];
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                         dataIdx++;
                     }
@@ -351,7 +364,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 #endif
     
     dispatch_async(dispatch_get_main_queue(), ^{
-        [self increaseTaskCount];
+        [self increaseSVHTTPRequestTaskCount];
     });
     
     if(self.operationParameters)
@@ -405,7 +418,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     [self.operationConnection cancel];
     self.operationConnection = nil;
     
-    [self decreaseTaskCount];
+    [self decreaseSVHTTPRequestTaskCount];
     
 #if TARGET_OS_IPHONE
     if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid) {
