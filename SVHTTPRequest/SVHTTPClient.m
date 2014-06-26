@@ -153,7 +153,9 @@
     requestOperation.cachePolicy = self.cachePolicy;
     requestOperation.userAgent = self.userAgent;
     requestOperation.timeoutInterval = self.timeoutInterval;
-    
+    requestOperation.headers = self.headers;
+    requestOperation.dismissNSURLAuthenticationMethodServerTrust=_dismissNSURLAuthenticationMethodServerTrust;
+
     [(id<SVHTTPRequestPrivateMethods>)requestOperation setClient:self];
     
     [self.HTTPHeaderFields enumerateKeysAndObjectsUsingBlock:^(NSString *field, NSString *value, BOOL *stop) {

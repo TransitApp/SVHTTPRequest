@@ -47,6 +47,8 @@ typedef NSUInteger SVHTTPRequestMethod;
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 @property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
 @property (nonatomic, readwrite) NSUInteger timeoutInterval;
+@property (nonatomic, readwrite) NSDictionary *headers;
+@property (nonatomic, readwrite) BOOL dismissNSURLAuthenticationMethodServerTrust;
 
 @end
 
