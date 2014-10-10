@@ -149,6 +149,10 @@
                                                                                                    saveToPath:savePath
                                                                                                      progress:progressBlock
                                                                                                    completion:completionBlock];
+    return [self queueRequest:requestOperation];
+}
+
+- (SVHTTPRequest*)queueRequest:(SVHTTPRequest*)requestOperation {
     requestOperation.sendParametersAsJSON = self.sendParametersAsJSON;
     requestOperation.cachePolicy = self.cachePolicy;
     requestOperation.userAgent = self.userAgent;
@@ -163,7 +167,6 @@
     if(self.username && self.password)
         [(id<SVHTTPRequestPrivateMethods>)requestOperation signRequestWithUsername:self.username password:self.password];
     
-    [(id<SVHTTPRequestPrivateMethods>)requestOperation setRequestPath:path];
     [self.operationQueue addOperation:requestOperation];
     
     return requestOperation;

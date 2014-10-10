@@ -33,7 +33,7 @@ typedef void (^SVHTTPRequestCompletionHandler)(id response, NSHTTPURLResponse *u
 
 - (void)cancelRequestsWithPath:(NSString*)path;
 - (void)cancelAllRequests;
-
+- (SVHTTPRequest*)queueRequest:(SVHTTPRequest*)requestOperation;
 
 @property (nonatomic, strong) NSDictionary *baseParameters;
 
