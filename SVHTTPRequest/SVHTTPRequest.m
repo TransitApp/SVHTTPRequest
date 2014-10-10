@@ -35,11 +35,9 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 @interface SVHTTPRequest ()
 
-@property (nonatomic, strong) NSMutableURLRequest *operationRequest;
 @property (nonatomic, strong) NSMutableData *operationData;
 @property (nonatomic, strong) NSFileHandle *operationFileHandle;
 @property (nonatomic, strong) NSURLConnection *operationConnection;
-@property (nonatomic, strong) NSDictionary *operationParameters;
 @property (nonatomic, strong) NSHTTPURLResponse *operationURLResponse;
 @property (nonatomic, strong) NSString *operationSavePath;
 @property (nonatomic, assign) CFRunLoopRef operationRunLoop;
@@ -183,12 +181,18 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     self.operationCompletionBlock = completionBlock;
     self.operationProgressBlock = progressBlock;
     self.operationSavePath = savePath;
-    self.operationParameters = parameters;
     
     self.saveDataDispatchGroup = dispatch_group_create();
     self.saveDataDispatchQueue = dispatch_queue_create("com.samvermette.SVHTTPRequest", DISPATCH_QUEUE_SERIAL);
     
-    self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:urlString]];
+    NSURL *url = [[NSURL alloc] initWithString:urlString];
+    self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:url];
+    
+    NSString *path = url.path;
+    if ([path hasPrefix:@"/"]) {
+        path = [path substringFromIndex:1];
+    }
+    [self setRequestPath:path];
     
     // pipeline all but POST and downloads
     if(method != SVHTTPRequestMethodPOST && !savePath)
@@ -204,7 +208,11 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         [self.operationRequest setHTTPMethod:@"DELETE"];
     else if(method == SVHTTPRequestMethodHEAD)
         [self.operationRequest setHTTPMethod:@"HEAD"];
+
     self.state = SVHTTPRequestStateReady;
+    
+    if(parameters)
+        [self addParametersToRequest:parameters];
     
     return self;
 }
@@ -366,9 +374,6 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self increaseSVHTTPRequestTaskCount];
     });
-    
-    if(self.operationParameters)
-        [self addParametersToRequest:self.operationParameters];
     
     if(self.userAgent)
         [self.operationRequest setValue:self.userAgent forHTTPHeaderField:@"User-Agent"];

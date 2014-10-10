@@ -47,6 +47,7 @@ typedef NSUInteger SVHTTPRequestMethod;
 @property (nonatomic, readwrite) BOOL sendParametersAsJSON;
 @property (nonatomic, readwrite) NSURLRequestCachePolicy cachePolicy;
 @property (nonatomic, readwrite) NSUInteger timeoutInterval;
+@property (nonatomic, strong) NSMutableURLRequest *operationRequest;
 
 @end
 
