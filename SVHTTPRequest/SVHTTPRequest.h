@@ -38,6 +38,7 @@ typedef NSUInteger SVHTTPRequestMethod;
                        parameters:(NSObject*)parameters 
                        completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
+- (void)preprocessParameters;
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 
 + (void)setDefaultTimeoutInterval:(NSTimeInterval)interval;

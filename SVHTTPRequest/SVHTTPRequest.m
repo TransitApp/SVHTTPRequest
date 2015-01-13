@@ -35,6 +35,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 @interface SVHTTPRequest ()
 
+@property (nonatomic, strong) NSDictionary *parameters;
 @property (nonatomic, strong) NSMutableData *operationData;
 @property (nonatomic, strong) NSFileHandle *operationFileHandle;
 @property (nonatomic, strong) NSURLConnection *operationConnection;
@@ -211,12 +212,16 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
     self.state = SVHTTPRequestStateReady;
     
-    if(parameters)
-        [self addParametersToRequest:parameters];
+    self.parameters = parameters;
     
     return self;
 }
 
+- (void)preprocessParameters {
+    if(self.parameters)
+        [self addParametersToRequest:self.parameters];
+    self.parameters = nil;
+}
 
 - (void)addParametersToRequest:(NSObject*)parameters {
     
@@ -360,6 +365,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         [self finish];
         return;
     }
+    
+    [self preprocessParameters];
     
 #if TARGET_OS_IPHONE && !__has_feature(attribute_availability_app_extension)
     // all requests should complete and run completion block unless we explicitely cancel them.
