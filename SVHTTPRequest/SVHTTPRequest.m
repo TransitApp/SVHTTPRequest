@@ -545,7 +545,14 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         
         if ([[self.operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
             if(self.operationData && self.operationData.length > 0) {
-                NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:response options:NSJSONReadingAllowFragments error:&error];
+                //We parse the string before, because we need it to be UTF-8 in NSJSONSerialization
+                NSString *utf8String = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
+                if (utf8String == nil) {
+                    utf8String = [[NSString alloc] initWithData:response encoding:NSASCIIStringEncoding];
+                }
+                
+                NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:[utf8String dataUsingEncoding:NSUTF8StringEncoding]
+                                                                           options:NSJSONReadingAllowFragments error:&error];
                 
                 if(jsonObject)
                     response = jsonObject;
