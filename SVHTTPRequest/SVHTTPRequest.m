@@ -8,6 +8,7 @@
 //
 
 #import "SVHTTPRequest.h"
+#import <UIKit/UIApplication.h>
 
 @interface NSData (Base64)
 - (NSString*)base64EncodingWithLineLength:(unsigned int)lineLength;
