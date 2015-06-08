@@ -142,6 +142,16 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     
     return requestObject;
 }
+//added by shutup@2014.8.27#fyjc999@gmail.com
++(SVHTTPRequest *)POST:(NSString *)address parameters:(NSObject *)parameters asJson:(BOOL)json completion:(SVHTTPRequestCompletionHandler)block{
+    SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:block];
+    
+    requestObject.sendParametersAsJSON=json;
+    
+    [requestObject start];
+    
+    return requestObject;
+}
 
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
