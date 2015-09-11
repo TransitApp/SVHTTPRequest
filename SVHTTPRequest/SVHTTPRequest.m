@@ -31,6 +31,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 static NSInteger SVHTTPRequestTaskCount = 0;
 static NSString *defaultUserAgent;
+static NSURLRequestCachePolicy defaultCachePolicy;
 static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 @interface SVHTTPRequest ()
@@ -86,6 +87,10 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     dispatch_release(_saveDataDispatchGroup);
     dispatch_release(_saveDataDispatchQueue);
 #endif
+}
+
++ (void)setDefaultCachePolicy:(NSURLRequestCachePolicy)cachePolicy {
+    defaultCachePolicy = cachePolicy;
 }
 
 + (void)setDefaultTimeoutInterval:(NSTimeInterval)interval {
@@ -400,7 +405,11 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         [self.operationRequest setTimeoutInterval:self.timeoutInterval];
     }
     
-    [self.operationRequest setCachePolicy:self.cachePolicy];
+    if(defaultCachePolicy)
+        [self.operationRequest setCachePolicy:defaultCachePolicy];
+    else
+        [self.operationRequest setCachePolicy:self.cachePolicy];
+    
     self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:NO];
     
     NSOperationQueue *currentQueue = [NSOperationQueue currentQueue];
