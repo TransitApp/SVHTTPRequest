@@ -41,6 +41,7 @@ typedef NSUInteger SVHTTPRequestMethod;
 - (void)preprocessParameters;
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 
++ (void)setDefaultCachePolicy:(NSURLRequestCachePolicy)cachePolicy;
 + (void)setDefaultTimeoutInterval:(NSTimeInterval)interval;
 + (void)setDefaultUserAgent:(NSString*)userAgent;
 
