@@ -21,7 +21,7 @@ enum {
 };
 typedef NSUInteger SVHTTPRequestMethod;
 
-@interface SVHTTPRequest : NSOperation
+@interface SVHTTPRequest : NSOperation <NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate>
 
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
