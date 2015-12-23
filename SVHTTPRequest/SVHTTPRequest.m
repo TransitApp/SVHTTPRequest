@@ -39,7 +39,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @property (nonatomic, strong) NSDictionary *parameters;
 @property (nonatomic, strong) NSMutableData *operationData;
 @property (nonatomic, strong) NSFileHandle *operationFileHandle;
-@property (nonatomic, strong) NSURLConnection *operationConnection;
+@property (nonatomic, strong) NSURLSession *operationSession;
+@property (nonatomic, strong) NSURLSessionTask *operationSessionTask;
 @property (nonatomic, strong) NSHTTPURLResponse *operationURLResponse;
 @property (nonatomic, strong) NSString *operationSavePath;
 @property (nonatomic, assign) CFRunLoopRef operationRunLoop;
@@ -71,7 +72,6 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 - (void)addParametersToRequest:(NSDictionary*)paramsDict;
 - (void)finish;
 
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error;
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error;
 
 @end
@@ -82,7 +82,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @synthesize state = _state;
 
 - (void)dealloc {
-    [_operationConnection cancel];
+    [_operationSession invalidateAndCancel];
 #if !OS_OBJECT_USE_OBJC
     dispatch_release(_saveDataDispatchGroup);
     dispatch_release(_saveDataDispatchQueue);
@@ -405,39 +405,30 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         [self.operationRequest setTimeoutInterval:self.timeoutInterval];
     }
     
+    NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    self.operationSession = [NSURLSession sessionWithConfiguration:sessionConfiguration delegate:self delegateQueue:nil];
+    
     if(defaultCachePolicy)
         [self.operationRequest setCachePolicy:defaultCachePolicy];
     else
         [self.operationRequest setCachePolicy:self.cachePolicy];
     
-    self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:NO];
-    
-    NSOperationQueue *currentQueue = [NSOperationQueue currentQueue];
-    BOOL inBackgroundAndInOperationQueue = (currentQueue != nil && currentQueue != [NSOperationQueue mainQueue]);
-    NSRunLoop *targetRunLoop = (inBackgroundAndInOperationQueue) ? [NSRunLoop currentRunLoop] : [NSRunLoop mainRunLoop];
-    
-    if(self.operationSavePath) // schedule on main run loop so scrolling doesn't prevent UI updates of the progress block
-        [self.operationConnection scheduleInRunLoop:targetRunLoop forMode:NSRunLoopCommonModes];
+    if(self.operationSavePath)
+        self.operationSessionTask = [self.operationSession downloadTaskWithRequest:self.operationRequest];
     else
-        [self.operationConnection scheduleInRunLoop:targetRunLoop forMode:NSDefaultRunLoopMode];
+        self.operationSessionTask = [self.operationSession dataTaskWithRequest:self.operationRequest];
     
-    [self.operationConnection start];
+    [self.operationSessionTask resume];
     
 #if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
 #endif
-    
-    // make NSRunLoop stick around until operation is finished
-    if(inBackgroundAndInOperationQueue) {
-        self.operationRunLoop = CFRunLoopGetCurrent();
-        CFRunLoopRun();
-    }
 }
 
 // private method; not part of NSOperation
 - (void)finish {
-    [self.operationConnection cancel];
-    self.operationConnection = nil;
+    [self.operationSession invalidateAndCancel];
+    self.operationSession = nil;
     
     [self decreaseSVHTTPRequestTaskCount];
     
@@ -503,28 +494,18 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
                               failingURL.absoluteString, NSURLErrorFailingURLStringErrorKey, nil];
     
     NSError *timeoutError = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:userInfo];
-    [self connection:nil didFailWithError:timeoutError];
+    [self URLSession:self.operationSession task:self.operationSessionTask didCompleteWithError:timeoutError];
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler {
     self.expectedContentLength = response.expectedContentLength;
     self.receivedContentLength = 0;
     self.operationURLResponse = (NSHTTPURLResponse*)response;
+    completionHandler(NSURLSessionResponseAllow);
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
     dispatch_group_async(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-        if(self.operationSavePath) {
-            @try { //writeData: can throw exception when there's no disk space. Give an error, don't crash
-                [self.operationFileHandle writeData:data];
-            }
-            @catch (NSException *exception) {
-                [self.operationConnection cancel];
-                NSError *writeError = [NSError errorWithDomain:@"SVHTTPRequestWriteError" code:0 userInfo:exception.userInfo];
-                [self callCompletionBlockWithResponse:nil error:writeError];
-            }
-        }
-        else
             [self.operationData appendData:data];
     });
     
@@ -540,40 +521,48 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     }
 }
 
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didSendBodyData:(int64_t)bytesSent totalBytesSent:(int64_t)totalBytesSent totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend {
     if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {
-        self.operationProgressBlock((float)totalBytesWritten/(float)totalBytesExpectedToWrite);
+        self.operationProgressBlock((float)totalBytesSent/(float)totalBytesExpectedToSend);
     }
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    dispatch_group_notify(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-        
-        id response = [NSData dataWithData:self.operationData];
-        NSError *error = nil;
-        
-        if ([[self.operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
-            if(self.operationData && self.operationData.length > 0) {
-                //We parse the string before, because we need it to be UTF-8 in NSJSONSerialization
-                NSString *utf8String = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
-                if (utf8String == nil) {
-                    utf8String = [[NSString alloc] initWithData:response encoding:NSASCIIStringEncoding];
-                }
-                
-                NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:[utf8String dataUsingEncoding:NSUTF8StringEncoding]
-                                                                           options:NSJSONReadingAllowFragments error:&error];
-                
-                if(jsonObject)
-                    response = jsonObject;
-            }
-        }
-        
-        [self callCompletionBlockWithResponse:response error:error];
+
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location {
+    dispatch_group_async(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
+        NSData *fileData = [NSData dataWithContentsOfURL:location];
+        [self.operationFileHandle writeData:fileData];
     });
 }
 
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    [self callCompletionBlockWithResponse:nil error:error];
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
+    if(error) {
+        [self callCompletionBlockWithResponse:nil error:error];
+    } else {
+        dispatch_group_notify(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
+            
+            id response = [NSData dataWithData:self.operationData];
+            NSError *err = nil;
+            
+            if ([[self.operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
+                if(self.operationData && self.operationData.length > 0) {
+                    //We parse the string before, because we need it to be UTF-8 in NSJSONSerialization
+                    NSString *utf8String = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
+                    if (utf8String == nil) {
+                        utf8String = [[NSString alloc] initWithData:response encoding:NSASCIIStringEncoding];
+                    }
+                    
+                    NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:[utf8String dataUsingEncoding:NSUTF8StringEncoding]
+                                                                               options:NSJSONReadingAllowFragments error:&err];
+                    
+                    if(jsonObject)
+                        response = jsonObject;
+                }
+            }
+            
+            [self callCompletionBlockWithResponse:response error:err];
+        });
+    }
 }
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
