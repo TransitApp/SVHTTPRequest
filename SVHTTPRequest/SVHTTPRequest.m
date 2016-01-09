@@ -49,14 +49,6 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 #endif
 
-#if !OS_OBJECT_USE_OBJC
-@property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
-@property (nonatomic, assign) dispatch_group_t saveDataDispatchGroup;
-#else
-@property (nonatomic, strong) dispatch_queue_t saveDataDispatchQueue;
-@property (nonatomic, strong) dispatch_group_t saveDataDispatchGroup;
-#endif
-
 @property (nonatomic, copy) SVHTTPRequestCompletionHandler operationCompletionBlock;
 @property (nonatomic, copy) void (^operationProgressBlock)(float progress);
 
@@ -188,9 +180,6 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     self.operationProgressBlock = progressBlock;
     self.operationSavePath = savePath;
     
-    self.saveDataDispatchGroup = dispatch_group_create();
-    self.saveDataDispatchQueue = dispatch_queue_create("com.samvermette.SVHTTPRequest", DISPATCH_QUEUE_SERIAL);
-    
     NSURL *url = [[NSURL alloc] initWithString:urlString];
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:url];
     
@@ -214,7 +203,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         [self.operationRequest setHTTPMethod:@"DELETE"];
     else if(method == SVHTTPRequestMethodHEAD)
         [self.operationRequest setHTTPMethod:@"HEAD"];
-
+    
     self.state = SVHTTPRequestStateReady;
     
     self.parameters = parameters;
@@ -246,7 +235,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         else if([parameters isKindOfClass:[NSDictionary class]]) {
             __block BOOL hasData = NO;
             NSDictionary *paramsDict = (NSDictionary*)parameters;
-        
+            
             [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
                 if([obj isKindOfClass:[NSData class]] || [obj isKindOfClass:[NSURL class]])
                     hasData = YES;
@@ -299,7 +288,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
                         else {
                             [postData appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                         }
-
+                        
                         [postData appendData:data];
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                         dataIdx++;
@@ -505,9 +494,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 }
 
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
-    dispatch_group_async(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-            [self.operationData appendData:data];
-    });
+    [self.operationData appendData:data];
     
     if(self.operationProgressBlock) {
         //If its -1 that means the header does not have the content size value
@@ -529,39 +516,34 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location {
-    dispatch_group_async(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-        NSData *fileData = [NSData dataWithContentsOfURL:location];
-        [self.operationFileHandle writeData:fileData];
-    });
+    NSData *fileData = [NSData dataWithContentsOfURL:location];
+    [self.operationFileHandle writeData:fileData];
 }
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
     if(error) {
         [self callCompletionBlockWithResponse:nil error:error];
     } else {
-        dispatch_group_notify(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-            
-            id response = [NSData dataWithData:self.operationData];
-            NSError *err = nil;
-            
-            if ([[self.operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
-                if(self.operationData && self.operationData.length > 0) {
-                    //We parse the string before, because we need it to be UTF-8 in NSJSONSerialization
-                    NSString *utf8String = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
-                    if (utf8String == nil) {
-                        utf8String = [[NSString alloc] initWithData:response encoding:NSASCIIStringEncoding];
-                    }
-                    
-                    NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:[utf8String dataUsingEncoding:NSUTF8StringEncoding]
-                                                                               options:NSJSONReadingAllowFragments error:&err];
-                    
-                    if(jsonObject)
-                        response = jsonObject;
+        id response = [NSData dataWithData:self.operationData];
+        NSError *err = nil;
+        
+        if ([[self.operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
+            if(self.operationData && self.operationData.length > 0) {
+                //We parse the string before, because we need it to be UTF-8 in NSJSONSerialization
+                NSString *utf8String = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
+                if (utf8String == nil) {
+                    utf8String = [[NSString alloc] initWithData:response encoding:NSASCIIStringEncoding];
                 }
+                
+                NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:[utf8String dataUsingEncoding:NSUTF8StringEncoding]
+                                                                           options:NSJSONReadingAllowFragments error:&err];
+                
+                if(jsonObject)
+                    response = jsonObject;
             }
-            
-            [self callCompletionBlockWithResponse:response error:err];
-        });
+        }
+        
+        [self callCompletionBlockWithResponse:response error:err];
     }
 }
 
@@ -614,7 +596,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
                                                                                             NULL,
                                                                                             CFSTR(":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "),
                                                                                             kCFStringEncodingUTF8);
-	return result;
+    return result;
 }
 
 @end
@@ -633,53 +615,53 @@ static char encodingTable[64] = {
 @implementation NSData (SVHTTPRequest)
 
 - (NSString *)base64EncodingWithLineLength:(unsigned int) lineLength {
-	const unsigned char	*bytes = [self bytes];
-	NSMutableString *result = [NSMutableString stringWithCapacity:[self length]];
-	unsigned long ixtext = 0;
-	unsigned long lentext = [self length];
-	long ctremaining = 0;
-	unsigned char inbuf[3], outbuf[4];
-	short i = 0;
-	unsigned int charsonline = 0;
+    const unsigned char	*bytes = [self bytes];
+    NSMutableString *result = [NSMutableString stringWithCapacity:[self length]];
+    unsigned long ixtext = 0;
+    unsigned long lentext = [self length];
+    long ctremaining = 0;
+    unsigned char inbuf[3], outbuf[4];
+    short i = 0;
+    unsigned int charsonline = 0;
     short ctcopy = 0;
-	unsigned long ix = 0;
+    unsigned long ix = 0;
     
-	while( YES ) {
-		ctremaining = lentext - ixtext;
-		if( ctremaining <= 0 ) break;
+    while( YES ) {
+        ctremaining = lentext - ixtext;
+        if( ctremaining <= 0 ) break;
         
-		for( i = 0; i < 3; i++ ) {
-			ix = ixtext + i;
-			if( ix < lentext ) inbuf[i] = bytes[ix];
-			else inbuf [i] = 0;
-		}
+        for( i = 0; i < 3; i++ ) {
+            ix = ixtext + i;
+            if( ix < lentext ) inbuf[i] = bytes[ix];
+            else inbuf [i] = 0;
+        }
         
-		outbuf [0] = (inbuf [0] & 0xFC) >> 2;
-		outbuf [1] = ((inbuf [0] & 0x03) << 4) | ((inbuf [1] & 0xF0) >> 4);
-		outbuf [2] = ((inbuf [1] & 0x0F) << 2) | ((inbuf [2] & 0xC0) >> 6);
-		outbuf [3] = inbuf [2] & 0x3F;
-		ctcopy = 4;
+        outbuf [0] = (inbuf [0] & 0xFC) >> 2;
+        outbuf [1] = ((inbuf [0] & 0x03) << 4) | ((inbuf [1] & 0xF0) >> 4);
+        outbuf [2] = ((inbuf [1] & 0x0F) << 2) | ((inbuf [2] & 0xC0) >> 6);
+        outbuf [3] = inbuf [2] & 0x3F;
+        ctcopy = 4;
         
-		switch( ctremaining ) {
+        switch( ctremaining ) {
             case 1:
                 ctcopy = 2;
                 break;
             case 2:
                 ctcopy = 3;
                 break;
-		}
+        }
         
-		for( i = 0; i < ctcopy; i++ )
-			[result appendFormat:@"%c", encodingTable[outbuf[i]]];
+        for( i = 0; i < ctcopy; i++ )
+            [result appendFormat:@"%c", encodingTable[outbuf[i]]];
         
-		for( i = ctcopy; i < 4; i++ )
-			[result appendFormat:@"%c",'='];
+        for( i = ctcopy; i < 4; i++ )
+            [result appendFormat:@"%c",'='];
         
-		ixtext += 3;
-		charsonline += 4;
-	}
+        ixtext += 3;
+        charsonline += 4;
+    }
     
-	return result;
+    return result;
 }
 
 - (BOOL)isJPG {
