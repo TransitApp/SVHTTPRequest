@@ -50,7 +50,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 #endif
 
 @property (nonatomic, copy) SVHTTPRequestCompletionHandler operationCompletionBlock;
-@property (nonatomic, copy) void (^operationProgressBlock)(float progress);
+@property (nonatomic, copy) void (^operationProgressBlock)(int64_t totalBytes, int64_t totalBytesExpected);
 
 @property (nonatomic, readwrite) SVHTTPRequestState state;
 @property (nonatomic, strong) NSString *requestPath;
@@ -126,7 +126,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
++ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(int64_t totalBytes, int64_t totalBytesExpected))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     [requestObject start];
     
@@ -140,7 +140,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(int64_t totalBytes, int64_t totalBytesExpected))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
     [requestObject start];
     
@@ -174,7 +174,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return [(id<SVHTTPRequestPrivateMethods>)self initWithAddress:urlString method:method parameters:parameters saveToPath:nil progress:NULL completion:completionBlock];
 }
 
-- (SVHTTPRequest*)initWithAddress:(NSString*)urlString method:(SVHTTPRequestMethod)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock  {
+- (SVHTTPRequest*)initWithAddress:(NSString*)urlString method:(SVHTTPRequestMethod)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(int64_t totalBytes, int64_t totalBytesExpected))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock  {
     self = [super init];
     self.operationCompletionBlock = completionBlock;
     self.operationProgressBlock = progressBlock;
@@ -500,17 +500,27 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         //If its -1 that means the header does not have the content size value
         if(self.expectedContentLength != -1) {
             self.receivedContentLength += data.length;
-            self.operationProgressBlock(self.receivedContentLength/self.expectedContentLength);
+            self.operationProgressBlock(self.receivedContentLength, self.expectedContentLength);
         } else {
             //we dont know the full size so always return -1 as the progress
-            self.operationProgressBlock(-1);
+            self.operationProgressBlock(-1, -1);
         }
     }
 }
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didSendBodyData:(int64_t)bytesSent totalBytesSent:(int64_t)totalBytesSent totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend {
     if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {
-        self.operationProgressBlock((float)totalBytesSent/(float)totalBytesExpectedToSend);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.operationProgressBlock(totalBytesSent, totalBytesExpectedToSend);
+        });
+    }
+}
+
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite {
+    if(self.operationProgressBlock) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.operationProgressBlock(totalBytesWritten, totalBytesExpectedToWrite);
+        });
     }
 }
 
