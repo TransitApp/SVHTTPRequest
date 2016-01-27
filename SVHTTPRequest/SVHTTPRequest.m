@@ -7,6 +7,7 @@
 //  https://github.com/samvermette/SVHTTPRequest
 //
 
+#import <UIKit/UIKit.h>
 #import "SVHTTPRequest.h"
 
 @interface NSData (Base64)
