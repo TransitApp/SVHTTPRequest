@@ -51,7 +51,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 #endif
 
 @property (nonatomic, copy) SVHTTPRequestCompletionHandler operationCompletionBlock;
-@property (nonatomic, copy) void (^operationProgressBlock)(int64_t totalBytes, int64_t totalBytesExpected);
+@property (nonatomic, copy) SVHTTPRequestProgressHandler operationProgressBlock;
 
 @property (nonatomic, readwrite) SVHTTPRequestState state;
 @property (nonatomic, strong) NSString *requestPath;
@@ -127,7 +127,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(int64_t totalBytes, int64_t totalBytesExpected))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
++ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     [requestObject start];
     
@@ -141,7 +141,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(int64_t totalBytes, int64_t totalBytesExpected))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
     [requestObject start];
     
@@ -155,6 +155,13 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
++ (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSObject *)parameters progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
+    SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPUT parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
+    [requestObject start];
+    
+    return requestObject;
+}
+
 + (SVHTTPRequest*)DELETE:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodDELETE parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
@@ -162,7 +169,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)HEAD:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse *, NSError *))block {
++ (SVHTTPRequest*)HEAD:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodHEAD parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
     
@@ -175,7 +182,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return [(id<SVHTTPRequestPrivateMethods>)self initWithAddress:urlString method:method parameters:parameters saveToPath:nil progress:NULL completion:completionBlock];
 }
 
-- (SVHTTPRequest*)initWithAddress:(NSString*)urlString method:(SVHTTPRequestMethod)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(int64_t totalBytes, int64_t totalBytesExpected))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock  {
+- (SVHTTPRequest*)initWithAddress:(NSString*)urlString method:(SVHTTPRequestMethod)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock  {
     self = [super init];
     self.operationCompletionBlock = completionBlock;
     self.operationProgressBlock = progressBlock;
@@ -602,12 +609,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @implementation NSString (SVHTTPRequest)
 
 - (NSString*)encodedURLParameterString {
-    NSString *result = (__bridge_transfer NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                                            (__bridge CFStringRef)self,
-                                                                                            NULL,
-                                                                                            CFSTR(":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "),
-                                                                                            kCFStringEncodingUTF8);
-    return result;
+    NSString *result = [self stringByAddingPercentEncodingWithAllowedCharacters: [NSCharacterSet characterSetWithCharactersInString:@":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "]];
+     return result;
 }
 
 @end
