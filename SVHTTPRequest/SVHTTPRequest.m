@@ -602,12 +602,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @implementation NSString (SVHTTPRequest)
 
 - (NSString*)encodedURLParameterString {
-    NSString *result = (__bridge_transfer NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                                            (__bridge CFStringRef)self,
-                                                                                            NULL,
-                                                                                            CFSTR(":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "),
-                                                                                            kCFStringEncodingUTF8);
-    return result;
+    NSString *result = [self stringByAddingPercentEncodingWithAllowedCharacters: [NSCharacterSet characterSetWithCharactersInString:@":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "]];
+     return result;
 }
 
 @end
