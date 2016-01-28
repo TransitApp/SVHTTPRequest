@@ -18,7 +18,7 @@
                         method:(SVHTTPRequestMethod)method
                     parameters:(NSDictionary*)parameters
                     saveToPath:(NSString*)savePath
-                      progress:(void (^)(float))progressBlock
+                      progress:(SVHTTPRequestProgressHandler)progressBlock
                     completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 @property (nonatomic, strong) NSMutableDictionary *HTTPHeaderFields;
@@ -74,7 +74,7 @@
     return [self queueRequest:path method:SVHTTPRequestMethodGET parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (SVHTTPRequest*)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
+- (SVHTTPRequest*)GET:(NSString *)path parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     return [self queueRequest:path method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
 }
 
@@ -82,7 +82,7 @@
     return [self queueRequest:path method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:nil completion:completionBlock];
 }
 
-- (SVHTTPRequest*)POST:(NSString *)path parameters:(NSDictionary *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
+- (SVHTTPRequest*)POST:(NSString *)path parameters:(NSDictionary *)parameters progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     return [self queueRequest:path method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
 }
 
@@ -129,7 +129,7 @@
                         method:(SVHTTPRequestMethod)method
                     parameters:(NSDictionary*)parameters
                     saveToPath:(NSString*)savePath
-                      progress:(void (^)(float))progressBlock
+                      progress:(SVHTTPRequestProgressHandler)progressBlock
                     completion:(SVHTTPRequestCompletionHandler)completionBlock  {
     
     NSString *completeURLString = [NSString stringWithFormat:@"%@%@", self.basePath, path];
