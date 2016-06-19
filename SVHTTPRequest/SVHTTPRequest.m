@@ -389,6 +389,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     else if(defaultUserAgent)
         [self.operationRequest setValue:defaultUserAgent forHTTPHeaderField:@"User-Agent"];
     
+    [self.operationRequest setValue:[[NSLocale currentLocale] localeIdentifier]  forHTTPHeaderField:@"Accept-Language"];
+    
     [self willChangeValueForKey:@"isExecuting"];
     self.state = SVHTTPRequestStateExecuting;
     [self didChangeValueForKey:@"isExecuting"];
