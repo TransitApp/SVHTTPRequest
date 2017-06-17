@@ -111,7 +111,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 }
 
 - (void)toggleNetworkActivityIndicator {
-#if TARGET_OS_IPHONE && !__has_feature(attribute_availability_app_extension)
+#if TARGET_OS_IOS
     dispatch_async(dispatch_get_main_queue(), ^{
         [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(SVHTTPRequestTaskCount > 0)];
     });
