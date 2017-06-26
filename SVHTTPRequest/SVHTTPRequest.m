@@ -369,8 +369,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     }
     
     [self preprocessParameters];
-    
-#if TARGET_OS_IPHONE && !__has_feature(attribute_availability_app_extension)
+
+#if TARGET_OS_IPHONE && !(defined SV_APP_EXTENSION)
     // all requests should complete and run completion block unless we explicitely cancel them.
     self.backgroundTaskIdentifier = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid) {
@@ -431,7 +431,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     
     [self decreaseSVHTTPRequestTaskCount];
     
-#if TARGET_OS_IPHONE && !__has_feature(attribute_availability_app_extension)
+#if TARGET_OS_IPHONE && !(defined SV_APP_EXTENSION)
     if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid) {
         [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
         self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
