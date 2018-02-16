@@ -352,8 +352,10 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 - (void)setTimeoutTimer:(NSTimer *)newTimer {
     
-    if(_timeoutTimer)
-        [_timeoutTimer invalidate], _timeoutTimer = nil;
+    if(_timeoutTimer) {
+        [_timeoutTimer invalidate];
+        _timeoutTimer = nil;
+    }
     
     if(newTimer)
         _timeoutTimer = newTimer;
