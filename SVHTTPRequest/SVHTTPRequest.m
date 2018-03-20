@@ -7,6 +7,7 @@
 //  https://github.com/samvermette/SVHTTPRequest
 //
 
+#import <UIKit/UIKit.h>
 #import "SVHTTPRequest.h"
 #import <UIKit/UIKit.h>
 
@@ -32,6 +33,7 @@ typedef NSUInteger SVHTTPRequestState;
 
 static NSInteger SVHTTPRequestTaskCount = 0;
 static NSString *defaultUserAgent;
+static NSURLRequestCachePolicy defaultCachePolicy;
 static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 @interface SVHTTPRequest ()
@@ -39,7 +41,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @property (nonatomic, strong) NSDictionary *parameters;
 @property (nonatomic, strong) NSMutableData *operationData;
 @property (nonatomic, strong) NSFileHandle *operationFileHandle;
-@property (nonatomic, strong) NSURLConnection *operationConnection;
+@property (nonatomic, strong) NSURLSession *operationSession;
+@property (nonatomic, strong) NSURLSessionTask *operationSessionTask;
 @property (nonatomic, strong) NSHTTPURLResponse *operationURLResponse;
 @property (nonatomic, strong) NSString *operationSavePath;
 @property (nonatomic, assign) CFRunLoopRef operationRunLoop;
@@ -48,16 +51,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @property (nonatomic, readwrite) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 #endif
 
-#if !OS_OBJECT_USE_OBJC
-@property (nonatomic, assign) dispatch_queue_t saveDataDispatchQueue;
-@property (nonatomic, assign) dispatch_group_t saveDataDispatchGroup;
-#else
-@property (nonatomic, strong) dispatch_queue_t saveDataDispatchQueue;
-@property (nonatomic, strong) dispatch_group_t saveDataDispatchGroup;
-#endif
-
 @property (nonatomic, copy) SVHTTPRequestCompletionHandler operationCompletionBlock;
-@property (nonatomic, copy) void (^operationProgressBlock)(float progress);
+@property (nonatomic, copy) SVHTTPRequestProgressHandler operationProgressBlock;
 
 @property (nonatomic, readwrite) SVHTTPRequestState state;
 @property (nonatomic, strong) NSString *requestPath;
@@ -71,7 +66,6 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 - (void)addParametersToRequest:(NSDictionary*)paramsDict;
 - (void)finish;
 
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error;
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error;
 
 @end
@@ -82,11 +76,15 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @synthesize state = _state;
 
 - (void)dealloc {
-    [_operationConnection cancel];
+    [_operationSession invalidateAndCancel];
 #if !OS_OBJECT_USE_OBJC
     dispatch_release(_saveDataDispatchGroup);
     dispatch_release(_saveDataDispatchQueue);
 #endif
+}
+
++ (void)setDefaultCachePolicy:(NSURLRequestCachePolicy)cachePolicy {
+    defaultCachePolicy = cachePolicy;
 }
 
 + (void)setDefaultTimeoutInterval:(NSTimeInterval)interval {
@@ -114,7 +112,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 }
 
 - (void)toggleNetworkActivityIndicator {
-#if TARGET_OS_IPHONE && !__has_feature(attribute_availability_app_extension)
+#if TARGET_OS_IOS && !(defined SV_APP_EXTENSION)
     dispatch_async(dispatch_get_main_queue(), ^{
         [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(SVHTTPRequestTaskCount > 0)];
     });
@@ -130,7 +128,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
++ (SVHTTPRequest*)GET:(NSString *)address parameters:(NSDictionary *)parameters saveToPath:(NSString *)savePath progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodGET parameters:parameters saveToPath:savePath progress:progressBlock completion:completionBlock];
     [requestObject start];
     
@@ -144,7 +142,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(void (^)(id, NSHTTPURLResponse*, NSError *))completionBlock {
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPOST parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
     [requestObject start];
     
@@ -158,6 +156,13 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
++ (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSObject *)parameters progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock {
+    SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodPUT parameters:parameters saveToPath:nil progress:progressBlock completion:completionBlock];
+    [requestObject start];
+    
+    return requestObject;
+}
+
 + (SVHTTPRequest*)DELETE:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodDELETE parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
@@ -165,7 +170,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return requestObject;
 }
 
-+ (SVHTTPRequest*)HEAD:(NSString *)address parameters:(NSDictionary *)parameters completion:(void (^)(id, NSHTTPURLResponse *, NSError *))block {
++ (SVHTTPRequest*)HEAD:(NSString *)address parameters:(NSDictionary *)parameters completion:(SVHTTPRequestCompletionHandler)block {
     SVHTTPRequest *requestObject = [[self alloc] initWithAddress:address method:SVHTTPRequestMethodHEAD parameters:parameters saveToPath:nil progress:nil completion:block];
     [requestObject start];
     
@@ -178,14 +183,11 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     return [(id<SVHTTPRequestPrivateMethods>)self initWithAddress:urlString method:method parameters:parameters saveToPath:nil progress:NULL completion:completionBlock];
 }
 
-- (SVHTTPRequest*)initWithAddress:(NSString*)urlString method:(SVHTTPRequestMethod)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock  {
+- (SVHTTPRequest*)initWithAddress:(NSString*)urlString method:(SVHTTPRequestMethod)method parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock  {
     self = [super init];
     self.operationCompletionBlock = completionBlock;
     self.operationProgressBlock = progressBlock;
     self.operationSavePath = savePath;
-    
-    self.saveDataDispatchGroup = dispatch_group_create();
-    self.saveDataDispatchQueue = dispatch_queue_create("com.samvermette.SVHTTPRequest", DISPATCH_QUEUE_SERIAL);
     
     NSURL *url = [[NSURL alloc] initWithString:urlString];
     self.operationRequest = [[NSMutableURLRequest alloc] initWithURL:url];
@@ -210,7 +212,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         [self.operationRequest setHTTPMethod:@"DELETE"];
     else if(method == SVHTTPRequestMethodHEAD)
         [self.operationRequest setHTTPMethod:@"HEAD"];
-
+    
     self.state = SVHTTPRequestStateReady;
     
     self.parameters = parameters;
@@ -242,7 +244,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         else if([parameters isKindOfClass:[NSDictionary class]]) {
             __block BOOL hasData = NO;
             NSDictionary *paramsDict = (NSDictionary*)parameters;
-        
+            
             [paramsDict.allValues enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
                 if([obj isKindOfClass:[NSData class]] || [obj isKindOfClass:[NSURL class]])
                     hasData = YES;
@@ -295,7 +297,7 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
                         else {
                             [postData appendData:[@"Content-Type: application/octet-stream\r\n\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                         }
-
+                        
                         [postData appendData:data];
                         [postData appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
                         dataIdx++;
@@ -351,8 +353,10 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 
 - (void)setTimeoutTimer:(NSTimer *)newTimer {
     
-    if(_timeoutTimer)
-        [_timeoutTimer invalidate], _timeoutTimer = nil;
+    if(_timeoutTimer) {
+        [_timeoutTimer invalidate];
+        _timeoutTimer = nil;
+    }
     
     if(newTimer)
         _timeoutTimer = newTimer;
@@ -368,8 +372,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     }
     
     [self preprocessParameters];
-    
-#if TARGET_OS_IPHONE && !__has_feature(attribute_availability_app_extension)
+
+#if TARGET_OS_IPHONE && !(defined SV_APP_EXTENSION)
     // all requests should complete and run completion block unless we explicitely cancel them.
     self.backgroundTaskIdentifier = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
         if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid) {
@@ -388,6 +392,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     else if(defaultUserAgent)
         [self.operationRequest setValue:defaultUserAgent forHTTPHeaderField:@"User-Agent"];
     
+    [self.operationRequest setValue:[[NSLocale currentLocale] localeIdentifier]  forHTTPHeaderField:@"Accept-Language"];
+    
     [self willChangeValueForKey:@"isExecuting"];
     self.state = SVHTTPRequestStateExecuting;
     [self didChangeValueForKey:@"isExecuting"];
@@ -401,39 +407,34 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
         [self.operationRequest setTimeoutInterval:self.timeoutInterval];
     }
     
-    [self.operationRequest setCachePolicy:self.cachePolicy];
-    self.operationConnection = [[NSURLConnection alloc] initWithRequest:self.operationRequest delegate:self startImmediately:NO];
+    NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    self.operationSession = [NSURLSession sessionWithConfiguration:sessionConfiguration delegate:self delegateQueue:nil];
     
-    NSOperationQueue *currentQueue = [NSOperationQueue currentQueue];
-    BOOL inBackgroundAndInOperationQueue = (currentQueue != nil && currentQueue != [NSOperationQueue mainQueue]);
-    NSRunLoop *targetRunLoop = (inBackgroundAndInOperationQueue) ? [NSRunLoop currentRunLoop] : [NSRunLoop mainRunLoop];
-    
-    if(self.operationSavePath) // schedule on main run loop so scrolling doesn't prevent UI updates of the progress block
-        [self.operationConnection scheduleInRunLoop:targetRunLoop forMode:NSRunLoopCommonModes];
+    if(defaultCachePolicy)
+        [self.operationRequest setCachePolicy:defaultCachePolicy];
     else
-        [self.operationConnection scheduleInRunLoop:targetRunLoop forMode:NSDefaultRunLoopMode];
+        [self.operationRequest setCachePolicy:self.cachePolicy];
     
-    [self.operationConnection start];
+    if(self.operationSavePath)
+        self.operationSessionTask = [self.operationSession downloadTaskWithRequest:self.operationRequest];
+    else
+        self.operationSessionTask = [self.operationSession dataTaskWithRequest:self.operationRequest];
+    
+    [self.operationSessionTask resume];
     
 #if !(defined SVHTTPREQUEST_DISABLE_LOGGING)
     NSLog(@"[%@] %@", self.operationRequest.HTTPMethod, self.operationRequest.URL.absoluteString);
 #endif
-    
-    // make NSRunLoop stick around until operation is finished
-    if(inBackgroundAndInOperationQueue) {
-        self.operationRunLoop = CFRunLoopGetCurrent();
-        CFRunLoopRun();
-    }
 }
 
 // private method; not part of NSOperation
 - (void)finish {
-    [self.operationConnection cancel];
-    self.operationConnection = nil;
+    [self.operationSession invalidateAndCancel];
+    self.operationSession = nil;
     
     [self decreaseSVHTTPRequestTaskCount];
     
-#if TARGET_OS_IPHONE && !__has_feature(attribute_availability_app_extension)
+#if TARGET_OS_IPHONE && !(defined SV_APP_EXTENSION)
     if(self.backgroundTaskIdentifier != UIBackgroundTaskInvalid) {
         [[UIApplication sharedApplication] endBackgroundTask:self.backgroundTaskIdentifier];
         self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
@@ -495,56 +496,61 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
                               failingURL.absoluteString, NSURLErrorFailingURLStringErrorKey, nil];
     
     NSError *timeoutError = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:userInfo];
-    [self connection:nil didFailWithError:timeoutError];
+    [self URLSession:self.operationSession task:self.operationSessionTask didCompleteWithError:timeoutError];
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler {
     self.expectedContentLength = response.expectedContentLength;
     self.receivedContentLength = 0;
     self.operationURLResponse = (NSHTTPURLResponse*)response;
+    completionHandler(NSURLSessionResponseAllow);
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    dispatch_group_async(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-        if(self.operationSavePath) {
-            @try { //writeData: can throw exception when there's no disk space. Give an error, don't crash
-                [self.operationFileHandle writeData:data];
-            }
-            @catch (NSException *exception) {
-                [self.operationConnection cancel];
-                NSError *writeError = [NSError errorWithDomain:@"SVHTTPRequestWriteError" code:0 userInfo:exception.userInfo];
-                [self callCompletionBlockWithResponse:nil error:writeError];
-            }
-        }
-        else
-            [self.operationData appendData:data];
-    });
+- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
+    [self.operationData appendData:data];
     
     if(self.operationProgressBlock) {
         //If its -1 that means the header does not have the content size value
         if(self.expectedContentLength != -1) {
             self.receivedContentLength += data.length;
-            self.operationProgressBlock(self.receivedContentLength/self.expectedContentLength);
+            self.operationProgressBlock(self.receivedContentLength, self.expectedContentLength);
         } else {
             //we dont know the full size so always return -1 as the progress
-            self.operationProgressBlock(-1);
+            self.operationProgressBlock(-1, -1);
         }
     }
 }
 
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didSendBodyData:(int64_t)bytesSent totalBytesSent:(int64_t)totalBytesSent totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend {
     if(self.operationProgressBlock && [self.operationRequest.HTTPMethod isEqualToString:@"POST"]) {
-        self.operationProgressBlock((float)totalBytesWritten/(float)totalBytesExpectedToWrite);
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.operationProgressBlock(totalBytesSent, totalBytesExpectedToSend);
+        });
     }
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    dispatch_group_notify(self.saveDataDispatchGroup, self.saveDataDispatchQueue, ^{
-        
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didWriteData:(int64_t)bytesWritten totalBytesWritten:(int64_t)totalBytesWritten totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite {
+    if(self.operationProgressBlock) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.operationProgressBlock(totalBytesWritten, totalBytesExpectedToWrite);
+        });
+    }
+}
+
+
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location {
+    NSData *fileData = [NSData dataWithContentsOfURL:location];
+    [self.operationFileHandle writeData:fileData];
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
+    if(error) {
+        [self callCompletionBlockWithResponse:nil error:error];
+    } else {
         id response = [NSData dataWithData:self.operationData];
-        NSError *error = nil;
+        NSError *err = nil;
         
-        if ([[self.operationURLResponse MIMEType] isEqualToString:@"application/json"]) {
+        if ([[self.operationURLResponse MIMEType] isEqualToString:@"application/json"] || [[self.operationURLResponse MIMEType] isEqualToString:@"application/javascript"]) {
             if(self.operationData && self.operationData.length > 0) {
                 //We parse the string before, because we need it to be UTF-8 in NSJSONSerialization
                 NSString *utf8String = [[NSString alloc] initWithData:response encoding:NSUTF8StringEncoding];
@@ -553,19 +559,15 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
                 }
                 
                 NSDictionary *jsonObject = [NSJSONSerialization JSONObjectWithData:[utf8String dataUsingEncoding:NSUTF8StringEncoding]
-                                                                           options:NSJSONReadingAllowFragments error:&error];
+                                                                           options:NSJSONReadingAllowFragments error:&err];
                 
                 if(jsonObject)
                     response = jsonObject;
             }
         }
         
-        [self callCompletionBlockWithResponse:response error:error];
-    });
-}
-
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    [self callCompletionBlockWithResponse:nil error:error];
+        [self callCompletionBlockWithResponse:response error:err];
+    }
 }
 
 - (void)callCompletionBlockWithResponse:(id)response error:(NSError *)error {
@@ -612,12 +614,8 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
 @implementation NSString (SVHTTPRequest)
 
 - (NSString*)encodedURLParameterString {
-    NSString *result = (__bridge_transfer NSString*)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault,
-                                                                                            (__bridge CFStringRef)self,
-                                                                                            NULL,
-                                                                                            CFSTR(":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "),
-                                                                                            kCFStringEncodingUTF8);
-	return result;
+    NSString *result = [self stringByAddingPercentEncodingWithAllowedCharacters: [NSCharacterSet characterSetWithCharactersInString:@":/=,!$&'()*+;[]@#?^%\"`<>{}\\|~ "]];
+     return result;
 }
 
 @end
@@ -636,53 +634,53 @@ static char encodingTable[64] = {
 @implementation NSData (SVHTTPRequest)
 
 - (NSString *)base64EncodingWithLineLength:(unsigned int) lineLength {
-	const unsigned char	*bytes = [self bytes];
-	NSMutableString *result = [NSMutableString stringWithCapacity:[self length]];
-	unsigned long ixtext = 0;
-	unsigned long lentext = [self length];
-	long ctremaining = 0;
-	unsigned char inbuf[3], outbuf[4];
-	short i = 0;
-	unsigned int charsonline = 0;
+    const unsigned char	*bytes = [self bytes];
+    NSMutableString *result = [NSMutableString stringWithCapacity:[self length]];
+    unsigned long ixtext = 0;
+    unsigned long lentext = [self length];
+    long ctremaining = 0;
+    unsigned char inbuf[3], outbuf[4];
+    short i = 0;
+    unsigned int charsonline = 0;
     short ctcopy = 0;
-	unsigned long ix = 0;
+    unsigned long ix = 0;
     
-	while( YES ) {
-		ctremaining = lentext - ixtext;
-		if( ctremaining <= 0 ) break;
+    while( YES ) {
+        ctremaining = lentext - ixtext;
+        if( ctremaining <= 0 ) break;
         
-		for( i = 0; i < 3; i++ ) {
-			ix = ixtext + i;
-			if( ix < lentext ) inbuf[i] = bytes[ix];
-			else inbuf [i] = 0;
-		}
+        for( i = 0; i < 3; i++ ) {
+            ix = ixtext + i;
+            if( ix < lentext ) inbuf[i] = bytes[ix];
+            else inbuf [i] = 0;
+        }
         
-		outbuf [0] = (inbuf [0] & 0xFC) >> 2;
-		outbuf [1] = ((inbuf [0] & 0x03) << 4) | ((inbuf [1] & 0xF0) >> 4);
-		outbuf [2] = ((inbuf [1] & 0x0F) << 2) | ((inbuf [2] & 0xC0) >> 6);
-		outbuf [3] = inbuf [2] & 0x3F;
-		ctcopy = 4;
+        outbuf [0] = (inbuf [0] & 0xFC) >> 2;
+        outbuf [1] = ((inbuf [0] & 0x03) << 4) | ((inbuf [1] & 0xF0) >> 4);
+        outbuf [2] = ((inbuf [1] & 0x0F) << 2) | ((inbuf [2] & 0xC0) >> 6);
+        outbuf [3] = inbuf [2] & 0x3F;
+        ctcopy = 4;
         
-		switch( ctremaining ) {
+        switch( ctremaining ) {
             case 1:
                 ctcopy = 2;
                 break;
             case 2:
                 ctcopy = 3;
                 break;
-		}
+        }
         
-		for( i = 0; i < ctcopy; i++ )
-			[result appendFormat:@"%c", encodingTable[outbuf[i]]];
+        for( i = 0; i < ctcopy; i++ )
+            [result appendFormat:@"%c", encodingTable[outbuf[i]]];
         
-		for( i = ctcopy; i < 4; i++ )
-			[result appendFormat:@"%c",'='];
+        for( i = ctcopy; i < 4; i++ )
+            [result appendFormat:@"%c",'='];
         
-		ixtext += 3;
-		charsonline += 4;
-	}
+        ixtext += 3;
+        charsonline += 4;
+    }
     
-	return result;
+    return result;
 }
 
 - (BOOL)isJPG {

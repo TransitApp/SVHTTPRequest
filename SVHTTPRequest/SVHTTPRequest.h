@@ -21,14 +21,15 @@ enum {
 };
 typedef NSUInteger SVHTTPRequestMethod;
 
-@interface SVHTTPRequest : NSOperation
+@interface SVHTTPRequest : NSOperation <NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate>
 
 + (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
-+ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(float progress))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
++ (SVHTTPRequest*)GET:(NSString*)address parameters:(NSDictionary*)parameters saveToPath:(NSString*)savePath progress:(void (^)(int64_t totalBytes, int64_t totalBytesExpected))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 + (SVHTTPRequest*)POST:(NSString*)address parameters:(NSObject*)parameters completion:(SVHTTPRequestCompletionHandler)block;
-+ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
++ (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSObject*)parameters completion:(SVHTTPRequestCompletionHandler)block;
++ (SVHTTPRequest*)PUT:(NSString *)address parameters:(NSObject *)parameters progress:(SVHTTPRequestProgressHandler)progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 + (SVHTTPRequest*)HEAD:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
@@ -41,6 +42,7 @@ typedef NSUInteger SVHTTPRequestMethod;
 - (void)preprocessParameters;
 - (void)setValue:(NSString *)value forHTTPHeaderField:(NSString *)field;
 
++ (void)setDefaultCachePolicy:(NSURLRequestCachePolicy)cachePolicy;
 + (void)setDefaultTimeoutInterval:(NSTimeInterval)interval;
 + (void)setDefaultUserAgent:(NSString*)userAgent;
 
@@ -64,7 +66,7 @@ typedef NSUInteger SVHTTPRequestMethod;
                            method:(SVHTTPRequestMethod)method 
                        parameters:(NSObject*)parameters 
                        saveToPath:(NSString*)savePath
-                         progress:(void (^)(float))progressBlock
+                         progress:(SVHTTPRequestProgressHandler)progressBlock
                        completion:(SVHTTPRequestCompletionHandler)completionBlock;
 
 - (void)signRequestWithUsername:(NSString*)username password:(NSString*)password;
