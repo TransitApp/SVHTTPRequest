@@ -574,30 +574,9 @@ static NSTimeInterval SVHTTPRequestTimeoutInterval = 20;
     if(self.operationRunLoop)
         CFRunLoopStop(self.operationRunLoop);
     
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSError *serverError = error;
-        
-        if(!serverError) {
-            if(self.operationURLResponse.statusCode == 500) {
-                serverError = [NSError errorWithDomain:NSURLErrorDomain
-                                                  code:NSURLErrorBadServerResponse
-                                              userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                        @"Bad Server Response.", NSLocalizedDescriptionKey,
-                                                        self.operationRequest.URL, NSURLErrorFailingURLErrorKey,
-                                                        self.operationRequest.URL.absoluteString, NSURLErrorFailingURLStringErrorKey, nil]];
-            }
-            else if(self.operationURLResponse.statusCode > 299) {
-                serverError = [NSError errorWithDomain:NSURLErrorDomain
-                                                  code:self.operationURLResponse.statusCode
-                                              userInfo:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                        self.operationRequest.URL, NSURLErrorFailingURLErrorKey,
-                                                        self.operationRequest.URL.absoluteString, NSURLErrorFailingURLStringErrorKey, nil]];
-                
-            }
-        }
-        
+    dispatch_async(dispatch_get_main_queue(), ^{        
         if(self.operationCompletionBlock && !self.isCancelled)
-            self.operationCompletionBlock(response, self.operationURLResponse, serverError);
+            self.operationCompletionBlock(response, self.operationURLResponse, error);
         
         [self finish];
     });
