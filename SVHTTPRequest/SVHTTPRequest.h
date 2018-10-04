@@ -28,6 +28,9 @@ typedef NSUInteger SVHTTPRequestMethod;
 
 + (SVHTTPRequest*)POST:(NSString*)address parameters:(NSObject*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 + (SVHTTPRequest*)POST:(NSString *)address parameters:(NSObject *)parameters progress:(void (^)(float))progressBlock completion:(SVHTTPRequestCompletionHandler)completionBlock;
+//added by shutup@2014.8.27#fyjc999@gmail.com
++ (SVHTTPRequest*)POST:(NSString*)address parameters:(NSObject*)parameters asJson:(BOOL)json completion:(SVHTTPRequestCompletionHandler)block;
+
 + (SVHTTPRequest*)PUT:(NSString*)address parameters:(NSObject*)parameters completion:(SVHTTPRequestCompletionHandler)block;
 
 + (SVHTTPRequest*)DELETE:(NSString*)address parameters:(NSDictionary*)parameters completion:(SVHTTPRequestCompletionHandler)block;
